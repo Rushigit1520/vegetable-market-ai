@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vegetable Market Using AI — Fresh Groceries Delivered</title>
+  <meta name="description" content="Shop premium groceries online. Fresh fruits, vegetables, dairy, bakery and more delivered to your doorstep." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <!-- ============ HEADER ============ -->
+  <header class="header" id="main-header">
+    <div class="header-inner container">
+      <a href="#" class="logo" id="logo-link" onclick="navigateTo('home')">
+        <span class="logo-icon">🛒</span>
+        <span class="logo-text">Vegetable<span class="logo-accent">Market AI</span></span>
+      </a>
+      <div class="search-bar" id="search-bar">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="search-input" placeholder="Search groceries..." autocomplete="off" />
+      </div>
+      <nav class="header-actions">
+        <button class="btn-icon" id="cart-btn" onclick="navigateTo('cart')" aria-label="View cart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="cart-badge" id="cart-badge">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="main" id="main-content">
+
+    <!-- HOME / PRODUCTS PAGE -->
+    <section class="page page-home active" id="page-home">
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-inner container">
+          <div class="hero-content">
+            <span class="hero-badge">🌿 Farm Fresh</span>
+            <h1 class="hero-title">Groceries delivered in <span class="text-gradient">minutes</span></h1>
+            <p class="hero-subtitle">Shop premium fruits, vegetables, dairy and more — handpicked for quality, delivered to your doorstep.</p>
+            <button class="btn btn-primary btn-lg" onclick="document.getElementById('products-section').scrollIntoView({behavior:'smooth'})">
+              Shop Now
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-arrow"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div class="hero-visual">
+            <div class="hero-emoji-grid">
+              <span class="float-item" style="--delay:0s">🍎</span>
+              <span class="float-item" style="--delay:0.5s">🥦</span>
+              <span class="float-item" style="--delay:1s">🥛</span>
+              <span class="float-item" style="--delay:1.5s">🍞</span>
+              <span class="float-item" style="--delay:0.3s">🥑</span>
+              <span class="float-item" style="--delay:0.8s">🧀</span>
+              <span class="float-item" style="--delay:1.3s">🍓</span>
+              <span class="float-item" style="--delay:0.6s">🥕</span>
+              <span class="float-item" style="--delay:1.1s">🍊</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Section -->
+      <div class="products-section" id="products-section">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Fresh Picks</h2>
+            <p class="section-subtitle">Handpicked daily from local farms</p>
+          </div>
+          <!-- Category Filter -->
+          <div class="category-filter" id="category-filter">
+            <button class="cat-chip active" data-category="All" onclick="filterCategory('All', this)">All</button>
+          </div>
+          <!-- Product Grid -->
+          <div class="product-grid" id="product-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CART PAGE -->
+    <section class="page page-cart" id="page-cart">
+      <div class="container">
+        <button class="back-link" onclick="navigateTo('home')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          Continue Shopping
+        </button>
+        <h2 class="page-title">Your Cart</h2>
+        <div class="cart-layout">
+          <div class="cart-items" id="cart-items">
+            <!-- Populated by JS -->
+          </div>
+          <div class="cart-summary" id="cart-summary">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+        <div class="cart-empty" id="cart-empty" style="display:none">
+          <div class="empty-icon">🛒</div>
+          <h3>Your cart is empty</h3>
+          <p>Looks like you haven't added anything yet.</p>
+          <button class="btn btn-primary" onclick="navigateTo('home')">Start Shopping</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHECKOUT PAGE -->
+    <section class="page page-checkout" id="page-checkout">
+      <div class="container">
+        <button class="back-link" onclick="navigateTo('cart')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          Back to Cart
+        </button>
+        <h2 class="page-title">Checkout</h2>
+        <div class="checkout-layout">
+          <form class="checkout-form" id="checkout-form" onsubmit="placeOrder(event)">
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <span class="form-step">1</span>
+                Delivery Details
+              </h3>
+              <div class="form-group">
+                <label for="customer-name">Full Name</label>
+                <input type="text" id="customer-name" placeholder="John Doe" required />
+              </div>
+              <div class="form-group">
+                <label for="customer-email">Email Address</label>
+                <input type="email" id="customer-email" placeholder="john@example.com" required />
+              </div>
+              <div class="form-group">
+                <label for="customer-phone">Phone Number</label>
+                <input type="tel" id="customer-phone" placeholder="+1 (555) 000-0000" />
+              </div>
+              <div class="form-group">
+                <label for="customer-address">Delivery Address</label>
+                <textarea id="customer-address" rows="3" placeholder="123 Main St, Apt 4, New York, NY 10001" required></textarea>
+              </div>
+            </div>
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <span class="form-step">2</span>
+                Payment Method
+              </h3>
+              <div class="payment-options">
+                <label class="payment-option selected">
+                  <input type="radio" name="payment" value="cod" checked />
+                  <span class="payment-card">
+                    <span class="payment-icon">💵</span>
+                    <span>Cash on Delivery</span>
+                  </span>
+                </label>
+                <label class="payment-option">
+                  <input type="radio" name="payment" value="card" />
+                  <span class="payment-card">
+                    <span class="payment-icon">💳</span>
+                    <span>Credit / Debit Card</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg btn-full" id="place-order-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Place Order
+            </button>
+          </form>
+          <div class="checkout-summary" id="checkout-summary">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORDER CONFIRMATION PAGE -->
+    <section class="page page-confirmation" id="page-confirmation">
+      <div class="container">
+        <div class="confirmation-card" id="confirmation-card">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 Vegetable Market Using AI. Built with 🤖 by 4 AI Agents.</p>
+    </div>
+  </footer>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
