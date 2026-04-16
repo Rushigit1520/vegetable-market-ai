@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSearch();
   setupScroll();
   setupPaymentToggle();
+  setupFooterDate();
 });
 
 // -------- API Helpers --------
@@ -423,4 +424,15 @@ function showToast(icon, message) {
   toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
+}
+
+// -------- Footer Date --------
+function setupFooterDate() {
+  const el = document.getElementById("date-time");
+  if (!el) return;
+  const update = () => {
+    el.textContent = new Date().toLocaleString();
+  };
+  update();
+  setInterval(update, 1000);
 }
