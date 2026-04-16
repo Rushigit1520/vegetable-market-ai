@@ -1,8 +1,8 @@
-# 🥦 Vegetable Market Using AI
+#  Vegetable Market Using AI
 
 A modern, responsive web application for an AI-powered online vegetable market. This project was built to provide a premium grocery shopping experience with a beautifully designed user interface.
 
-## 🌟 Features
+## Features
 - **Dynamic Product Browsing**: Easily browse through a catalog of fresh vegetables and groceries.
 - **Shopping Cart System**: Add to cart, adjust quantities, and see quick summaries.
 - **Checkout Process**: Streamlined checkout with delivery details and payment options.
@@ -13,7 +13,7 @@ A modern, responsive web application for an AI-powered online vegetable market. 
 - **Backend**: Node.js, Express.js
 - **Other**: RESTful APIs for handling products, cart, and orders
 
-## 🚀 Getting Started
+##  Getting Started
 
 Follow these steps to run the application locally on your machine.
 
@@ -43,6 +43,6 @@ npm start
 ```
 Then, open your web browser and go to `http://localhost:3000` to start shopping!
 
-## 🤝 Built By
+## Built By
 
-Built with 🤖 by 4 AI Agents & Rushigit1520.
+Built with by 4 AI Agents & Rushigit1520.
