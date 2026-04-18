@@ -1,5 +1,5 @@
 /* ===================================================
-   FreshCart — Application Logic
+   Vegetable Market AI — Application Logic
    =================================================== */
 
 const API = "";
@@ -9,23 +9,102 @@ let currentPage = "home";
 let products = [];
 let categories = [];
 let activeCategory = "All";
+let authToken = localStorage.getItem("token") || "";
+let currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
 // -------- Init --------
 document.addEventListener("DOMContentLoaded", () => {
+  updateAuthUI();
   loadProducts();
-  loadCart();
+  if (authToken) loadCart();
   setupSearch();
   setupScroll();
   setupPaymentToggle();
   setupFooterDate();
+  setupDropdownClose();
 });
+
+// -------- Auth State --------
+function updateAuthUI() {
+  const loginBtn = document.getElementById("btn-login-header");
+  const userMenu = document.getElementById("user-menu");
+  const ordersBtn = document.getElementById("orders-btn");
+  const cartPrompt = document.getElementById("cart-login-prompt");
+
+  if (authToken && currentUser) {
+    // Logged in
+    loginBtn.style.display = "none";
+    userMenu.style.display = "block";
+    ordersBtn.style.display = "flex";
+
+    document.getElementById("user-avatar").textContent = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById("dropdown-name").textContent = currentUser.name;
+    document.getElementById("dropdown-email").textContent = currentUser.email;
+
+    const adminLink = document.getElementById("btn-admin-link");
+    if (adminLink) {
+      if (currentUser.role === "admin") {
+        adminLink.style.display = "flex";
+      } else {
+        adminLink.style.display = "none";
+      }
+    }
+
+  } else {
+    // Guest
+    loginBtn.style.display = "flex";
+    userMenu.style.display = "none";
+    ordersBtn.style.display = "none";
+  }
+}
+
+function toggleUserMenu() {
+  const dropdown = document.getElementById("user-dropdown");
+  dropdown.classList.toggle("open");
+}
+
+function setupDropdownClose() {
+  document.addEventListener("click", (e) => {
+    const menu = document.getElementById("user-menu");
+    const dropdown = document.getElementById("user-dropdown");
+    if (menu && !menu.contains(e.target)) {
+      dropdown.classList.remove("open");
+    }
+  });
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  authToken = "";
+  currentUser = null;
+  updateAuthUI();
+  navigateTo("home");
+  showToast("👋", "Logged out successfully");
+  const badge = document.getElementById("cart-badge");
+  badge.textContent = "0";
+}
 
 // -------- API Helpers --------
 async function api(path, options = {}) {
+  const headers = { "Content-Type": "application/json" };
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
   const res = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...options,
   });
+
+  // Handle expired token
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    authToken = "";
+    currentUser = null;
+    updateAuthUI();
+  }
+
   return res.json();
 }
 
@@ -42,6 +121,7 @@ function navigateTo(page) {
   // Refresh page data
   if (page === "cart") renderCart();
   if (page === "checkout") renderCheckoutSummary();
+  if (page === "orders") renderOrderHistory();
 }
 
 // -------- Products --------
@@ -102,12 +182,17 @@ function renderProducts(list) {
         </div>
         <div class="product-footer">
           <div>
-            <span class="product-price">$${p.price.toFixed(2)}</span>
+            <span class="product-price">$${parseFloat(p.price).toFixed(2)}</span>
             <span class="product-unit">/${p.unit}</span>
           </div>
-          <button class="btn-add-cart" id="add-btn-${p.id}" onclick="addToCart('${p.id}')" aria-label="Add ${p.name} to cart">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          </button>
+          ${p.stock > 0 
+            ? `<button class="btn-add-cart" id="add-btn-${p.id}" onclick="addToCart('${p.id}')" aria-label="Add ${p.name} to cart">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+               </button>`
+            : `<button class="btn-add-cart" style="background: var(--slate-300); cursor: not-allowed; box-shadow: none;" disabled title="Out of Stock">
+                 <span style="font-size:11px;font-weight:800;">OUT</span>
+               </button>`
+          }
         </div>
       </div>
     </div>
@@ -124,10 +209,19 @@ function getStars(rating) {
 
 // -------- Cart --------
 async function addToCart(productId) {
+  // Require login
+  if (!authToken) {
+    showToast("🔐", "Please login to add items to cart");
+    setTimeout(() => {
+      window.location.href = "/login.html";
+    }, 1000);
+    return;
+  }
+
   try {
     await api("/api/cart", {
       method: "POST",
-      body: JSON.stringify({ productId, quantity: 1 }),
+      body: JSON.stringify({ productId: parseInt(productId), quantity: 1 }),
     });
 
     // Button animation
@@ -149,6 +243,7 @@ async function addToCart(productId) {
 }
 
 async function loadCart() {
+  if (!authToken) return;
   try {
     const res = await api("/api/cart");
     const { itemCount } = res.data;
@@ -162,13 +257,24 @@ async function loadCart() {
 }
 
 async function renderCart() {
+  const cartEmpty = document.getElementById("cart-empty");
+  const cartItems = document.getElementById("cart-items");
+  const cartSummary = document.getElementById("cart-summary");
+  const cartPrompt = document.getElementById("cart-login-prompt");
+
+  if (!authToken) {
+    // Show login prompt
+    cartPrompt.style.display = "block";
+    cartItems.style.display = "none";
+    cartSummary.style.display = "none";
+    cartEmpty.style.display = "none";
+    return;
+  }
+  cartPrompt.style.display = "none";
+
   try {
     const res = await api("/api/cart");
     const { items, total, itemCount } = res.data;
-
-    const cartEmpty = document.getElementById("cart-empty");
-    const cartItems = document.getElementById("cart-items");
-    const cartSummary = document.getElementById("cart-summary");
 
     if (!items.length) {
       cartEmpty.style.display = "block";
@@ -192,7 +298,7 @@ async function renderCart() {
           <div class="qty-controls">
             <button class="qty-btn" onclick="updateQty('${item.productId}', ${item.quantity - 1})">−</button>
             <span class="qty-value">${item.quantity}</span>
-            <button class="qty-btn" onclick="updateQty('${item.productId}', ${item.quantity + 1})">+</button>
+            <button class="qty-btn" ${item.quantity >= item.product.stock ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''} onclick="updateQty('${item.productId}', ${item.quantity + 1})">+</button>
           </div>
           <div class="cart-item-subtotal">$${(item.product.price * item.quantity).toFixed(2)}</div>
         </div>
@@ -259,6 +365,7 @@ async function removeFromCart(productId) {
 
 // -------- Checkout --------
 async function renderCheckoutSummary() {
+  if (!authToken) return;
   try {
     const res = await api("/api/cart");
     const { items, total, itemCount } = res.data;
@@ -299,21 +406,22 @@ async function renderCheckoutSummary() {
 async function placeOrder(e) {
   e.preventDefault();
 
+  if (!authToken) {
+    showToast("🔐", "Please login to place an order");
+    return;
+  }
+
   const btn = document.getElementById("place-order-btn");
   btn.disabled = true;
   btn.innerHTML = `<span class="btn-spinner"></span> Placing Order...`;
 
-  const customer = {
-    name: document.getElementById("customer-name").value,
-    email: document.getElementById("customer-email").value,
-    phone: document.getElementById("customer-phone").value,
-    address: document.getElementById("customer-address").value,
-  };
+  const address = document.getElementById("customer-address").value;
+  const phone = document.getElementById("customer-phone").value;
 
   try {
     const res = await api("/api/orders", {
       method: "POST",
-      body: JSON.stringify({ customer }),
+      body: JSON.stringify({ address, phone }),
     });
 
     if (!res.success) {
@@ -343,9 +451,9 @@ function renderConfirmation(order) {
   card.innerHTML = `
     <div class="confirm-icon">✅</div>
     <h2 class="confirm-title">Order Placed!</h2>
-    <p class="confirm-subtitle">Thank you, ${order.customer.name}! Your groceries are on the way.</p>
+    <p class="confirm-subtitle">Thank you, ${currentUser ? currentUser.name : ""}! Your groceries are on the way.</p>
     <div class="confirm-order-id">
-      📦 Order: <strong>${order.orderNumber}</strong>
+      📦 Order: <strong>${order.order_number}</strong>
     </div>
     <div class="confirm-items">
       <h4>Items Ordered</h4>
@@ -353,7 +461,7 @@ function renderConfirmation(order) {
         .map(
           (item) => `
         <div class="confirm-item-row">
-          <span>${item.name} × ${item.quantity}</span>
+          <span>${item.product_name} × ${item.quantity}</span>
           <span>$${item.subtotal.toFixed(2)}</span>
         </div>
       `
@@ -366,6 +474,68 @@ function renderConfirmation(order) {
     </div>
     <button class="btn btn-primary btn-lg" onclick="navigateTo('home')">Continue Shopping</button>
   `;
+}
+
+// -------- Order History --------
+async function renderOrderHistory() {
+  if (!authToken) {
+    navigateTo("home");
+    return;
+  }
+
+  const listEl = document.getElementById("orders-list");
+  const emptyEl = document.getElementById("orders-empty");
+
+  try {
+    const res = await api("/api/orders");
+    const orders = res.data || [];
+
+    if (!orders.length) {
+      listEl.style.display = "none";
+      emptyEl.style.display = "block";
+      return;
+    }
+
+    emptyEl.style.display = "none";
+    listEl.style.display = "block";
+
+    listEl.innerHTML = orders
+      .map(
+        (order) => `
+      <div class="order-card">
+        <div class="order-card-header">
+          <div>
+            <span class="order-number">📦 ${order.order_number}</span>
+            <span class="order-date">${new Date(order.created_at).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}</span>
+          </div>
+          <span class="order-status order-status-${order.status}">${order.status}</span>
+        </div>
+        <div class="order-card-items">
+          ${(order.items || [])
+            .map(
+              (item) => `
+            <div class="order-item-row">
+              <span>${item.product_name} × ${item.quantity}</span>
+              <span>$${item.subtotal.toFixed(2)}</span>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+        <div class="order-card-footer">
+          <span>Total: <strong>$${order.total.toFixed(2)}</strong></span>
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  } catch (err) {
+    console.error("Failed to load order history", err);
+  }
 }
 
 // -------- Search --------

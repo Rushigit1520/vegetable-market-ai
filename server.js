@@ -1,7 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
+const authRoutes = require("./routes/auth.js");
 const productRoutes = require("./routes/products.js");
 const cartRoutes = require("./routes/cart.js");
 const orderRoutes = require("./routes/orders.js");
@@ -17,6 +19,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // API Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
@@ -32,7 +35,8 @@ app.get("*", (_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`\n  🛒  FreshCart Grocery is running!\n`);
+  console.log(`\n  🛒  Vegetable Market AI is running!\n`);
   console.log(`  ➜  Local:   http://localhost:${PORT}`);
-  console.log(`  ➜  API:     http://localhost:${PORT}/api/products\n`);
+  console.log(`  ➜  API:     http://localhost:${PORT}/api/products`);
+  console.log(`  ➜  Admin:   http://localhost:${PORT}/admin.html\n`);
 });

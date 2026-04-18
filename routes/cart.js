@@ -1,72 +1,159 @@
 const express = require("express");
 const router = express.Router();
-const products = require("../data/products.js");
+const pool = require("../config/db");
+const { authenticate } = require("../middleware/auth");
 
-// In-memory cart store (keyed by session — for demo we use a single cart)
-let cart = [];
+// All cart routes require authentication
+router.use(authenticate);
 
-// GET /api/cart
-router.get("/", (_req, res) => {
-  const enriched = cart.map((item) => {
-    const product = products.find((p) => p.id === item.productId);
-    return { ...item, product };
-  });
-  const total = enriched.reduce(
-    (sum, item) => sum + (item.product ? item.product.price * item.quantity : 0),
-    0
-  );
-  res.json({ success: true, data: { items: enriched, total: Math.round(total * 100) / 100, itemCount: enriched.reduce((s, i) => s + i.quantity, 0) } });
+// GET /api/cart — get user's cart
+router.get("/", async (req, res) => {
+  try {
+    const [items] = await pool.query(
+      `SELECT c.id, c.product_id, c.quantity,
+              p.name, p.category, p.price, p.unit, p.image, p.in_stock
+       FROM cart c
+       JOIN products p ON c.product_id = p.id
+       WHERE c.user_id = ?`,
+      [req.user.id]
+    );
+
+    const enriched = items.map((item) => ({
+      productId: item.product_id,
+      quantity: item.quantity,
+      product: {
+        id: item.product_id,
+        name: item.name,
+        category: item.category,
+        price: parseFloat(item.price),
+        unit: item.unit,
+        image: item.image,
+        inStock: item.in_stock,
+      },
+    }));
+
+    const total = enriched.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    );
+
+    res.json({
+      success: true,
+      data: {
+        items: enriched,
+        total: Math.round(total * 100) / 100,
+        itemCount: enriched.reduce((s, i) => s + i.quantity, 0),
+      },
+    });
+  } catch (err) {
+    console.error("Get cart error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
 });
 
 // POST /api/cart — add item { productId, quantity }
-router.post("/", (req, res) => {
-  const { productId, quantity = 1 } = req.body;
-  if (!productId) return res.status(400).json({ success: false, message: "productId is required" });
+router.post("/", async (req, res) => {
+  try {
+    const { productId, quantity = 1 } = req.body;
+    if (!productId) {
+      return res.status(400).json({ success: false, message: "productId is required." });
+    }
 
-  const product = products.find((p) => p.id === productId);
-  if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    // Check product exists
+    const [products] = await pool.query("SELECT id FROM products WHERE id = ?", [productId]);
+    if (products.length === 0) {
+      return res.status(404).json({ success: false, message: "Product not found." });
+    }
 
-  const existing = cart.find((i) => i.productId === productId);
-  if (existing) {
-    existing.quantity += quantity;
-  } else {
-    cart.push({ productId, quantity });
+    // Upsert — add or increment quantity
+    await pool.query(
+      `INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
+      [req.user.id, productId, quantity, quantity]
+    );
+
+    const [updated] = await pool.query(
+      "SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?",
+      [req.user.id, productId]
+    );
+
+    res.json({
+      success: true,
+      message: "Item added to cart",
+      data: { productId, quantity: updated[0].quantity },
+    });
+  } catch (err) {
+    console.error("Add to cart error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
   }
-
-  res.json({ success: true, message: "Item added to cart", data: { productId, quantity: existing ? existing.quantity : quantity } });
 });
 
 // PUT /api/cart/:productId — update quantity { quantity }
-router.put("/:productId", (req, res) => {
-  const { quantity } = req.body;
-  const idx = cart.findIndex((i) => i.productId === req.params.productId);
-  if (idx === -1) return res.status(404).json({ success: false, message: "Item not in cart" });
+router.put("/:productId", async (req, res) => {
+  try {
+    const { quantity } = req.body;
+    const productId = req.params.productId;
 
-  if (quantity <= 0) {
-    cart.splice(idx, 1);
-    return res.json({ success: true, message: "Item removed from cart" });
+    const [existing] = await pool.query(
+      "SELECT id FROM cart WHERE user_id = ? AND product_id = ?",
+      [req.user.id, productId]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: "Item not in cart." });
+    }
+
+    if (quantity <= 0) {
+      await pool.query(
+        "DELETE FROM cart WHERE user_id = ? AND product_id = ?",
+        [req.user.id, productId]
+      );
+      return res.json({ success: true, message: "Item removed from cart" });
+    }
+
+    await pool.query(
+      "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?",
+      [quantity, req.user.id, productId]
+    );
+    res.json({ success: true, message: "Cart updated", data: { productId, quantity } });
+  } catch (err) {
+    console.error("Update cart error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
   }
-
-  cart[idx].quantity = quantity;
-  res.json({ success: true, message: "Cart updated", data: cart[idx] });
 });
 
-// DELETE /api/cart/:productId
-router.delete("/:productId", (req, res) => {
-  const idx = cart.findIndex((i) => i.productId === req.params.productId);
-  if (idx === -1) return res.status(404).json({ success: false, message: "Item not in cart" });
-  cart.splice(idx, 1);
-  res.json({ success: true, message: "Item removed from cart" });
+// DELETE /api/cart/:productId — remove single item
+router.delete("/:productId", async (req, res) => {
+  try {
+    const [existing] = await pool.query(
+      "SELECT id FROM cart WHERE user_id = ? AND product_id = ?",
+      [req.user.id, req.params.productId]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, message: "Item not in cart." });
+    }
+
+    await pool.query(
+      "DELETE FROM cart WHERE user_id = ? AND product_id = ?",
+      [req.user.id, req.params.productId]
+    );
+    res.json({ success: true, message: "Item removed from cart" });
+  } catch (err) {
+    console.error("Remove from cart error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
 });
 
-// DELETE /api/cart — clear cart
-router.delete("/", (_req, res) => {
-  cart = [];
-  res.json({ success: true, message: "Cart cleared" });
+// DELETE /api/cart — clear entire cart
+router.delete("/", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM cart WHERE user_id = ?", [req.user.id]);
+    res.json({ success: true, message: "Cart cleared" });
+  } catch (err) {
+    console.error("Clear cart error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
 });
-
-// Export cart ref for orders
-router.getCart = () => cart;
-router.clearCart = () => { cart = []; };
 
 module.exports = router;
