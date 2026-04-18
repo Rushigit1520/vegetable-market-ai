@@ -11,9 +11,10 @@ A modern, responsive web application for an AI-powered online vegetable market. 
 ## 🛠️ Tech Stack
 - **Frontend**: Vanilla HTML5, CSS3, JavaScript
 - **Backend**: Node.js, Express.js
-- **Other**: RESTful APIs for handling products, cart, and orders
+- **Database**: MySQL directly enforcing precise transactional stock schemas.
+- **Security**: JWT Authentication processing Role-Based Access control.
 
-##  Getting Started
+## 🛠️ Getting Started
 
 Follow these steps to run the application locally on your machine.
 
@@ -34,6 +35,11 @@ Follow these steps to run the application locally on your machine.
    ```bash
    npm install
    ```
+4. Create a `.env` file referencing `.env.example` mapping to your local MySQL database.
+5. Initialize and seed your database mathematically setting standard numerical units per product:
+   ```bash
+   npm run seed
+   ```
 
 ### Running the App
 
@@ -42,6 +48,15 @@ Start the backend server by running:
 npm start
 ```
 Then, open your web browser and go to `http://localhost:3000` to start shopping!
+
+### 🔐 Admin Access
+
+Upon successfully launching the application and seeding the MySQL database, a secure root administrator profile is configured natively. Access the dashboard securely at `http://localhost:3000/login.html`:
+
+- **Email:** `admin@freshcart.com`
+- **Password:** `admin123`
+
+*From this Admin Dashboard, you can track orders globally, manage exact item stock units natively mapping SQL updates, and seamlessly hire broad `employee` users to supervise shipments together.*
 
 ## Built By
 
