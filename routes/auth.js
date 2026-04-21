@@ -138,6 +138,23 @@ router.post("/register-employee", authenticate, requireStrictAdmin, async (req, 
   }
 });
 
+/**
+ * @route   GET /api/auth/employees
+ * @desc    Get all employees
+ * @access  Admin
+ */
+router.get("/employees", authenticate, requireStrictAdmin, async (req, res) => {
+  try {
+    const [employees] = await pool.query(
+      "SELECT id, name, email, role, created_at FROM users WHERE role = 'employee' ORDER BY created_at DESC"
+    );
+    res.json({ success: true, data: employees });
+  } catch (err) {
+    console.error("Get employees error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
 // GET /api/auth/me — get current user profile
 router.get("/me", authenticate, async (req, res) => {
   try {

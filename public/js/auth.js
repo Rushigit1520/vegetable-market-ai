@@ -9,7 +9,7 @@ const API = "";
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "null");
   if (token && user) {
-    if (user.role === "admin") {
+    if (user.role === "admin" || user.role === "employee") {
       window.location.href = "/admin.html";
     } else {
       window.location.href = "/";
@@ -20,27 +20,40 @@ const API = "";
 // Tab Switching
 function switchTab(tab) {
   const loginTab = document.getElementById("tab-login");
+  const adminTab = document.getElementById("tab-admin");
   const registerTab = document.getElementById("tab-register");
+  
   const loginForm = document.getElementById("form-login");
+  const adminForm = document.getElementById("form-admin");
   const registerForm = document.getElementById("form-register");
+  
   const indicator = document.getElementById("tab-indicator");
+
+  loginTab.classList.remove("active");
+  if (adminTab) adminTab.classList.remove("active");
+  registerTab.classList.remove("active");
+  
+  loginForm.classList.remove("active");
+  if (adminForm) adminForm.classList.remove("active");
+  registerForm.classList.remove("active");
 
   if (tab === "login") {
     loginTab.classList.add("active");
-    registerTab.classList.remove("active");
     loginForm.classList.add("active");
-    registerForm.classList.remove("active");
     indicator.style.transform = "translateX(0)";
+  } else if (tab === "admin") {
+    adminTab.classList.add("active");
+    adminForm.classList.add("active");
+    indicator.style.transform = "translateX(100%)";
   } else {
     registerTab.classList.add("active");
-    loginTab.classList.remove("active");
     registerForm.classList.add("active");
-    loginForm.classList.remove("active");
-    indicator.style.transform = "translateX(100%)";
+    indicator.style.transform = "translateX(200%)";
   }
 
   // Clear errors
   document.getElementById("login-error").textContent = "";
+  if (document.getElementById("admin-error")) document.getElementById("admin-error").textContent = "";
   document.getElementById("register-error").textContent = "";
 }
 
@@ -57,17 +70,21 @@ function togglePassword(inputId, btn) {
 }
 
 // Login Handler
-async function handleLogin(e) {
+async function handleLogin(e, roleType = 'user') {
   e.preventDefault();
-  const btn = document.getElementById("btn-login");
-  const errorEl = document.getElementById("login-error");
+  
+  const isUser = roleType === 'user';
+  const prefix = isUser ? "login" : "admin";
+  const btn = document.getElementById(`btn-${isUser ? 'login' : 'admin-login'}`);
+  const errorEl = document.getElementById(`${prefix}-error`);
   errorEl.textContent = "";
 
-  const email = document.getElementById("login-email").value.trim();
-  const password = document.getElementById("login-password").value;
+  const email = document.getElementById(`${prefix}-email`).value.trim();
+  const password = document.getElementById(`${prefix}-password`).value;
 
   btn.disabled = true;
-  btn.innerHTML = `<span class="btn-spinner"></span> Signing in...`;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = `<span class="btn-spinner"></span> ${isUser ? 'Signing in...' : 'Authorizing...'}`;
 
   try {
     const res = await fetch(`${API}/api/auth/login`, {
@@ -82,12 +99,20 @@ async function handleLogin(e) {
       return;
     }
 
+    const role = data.data.user.role;
+    // Security check: if they use the user login for an admin account, it redirects anyway (which is fine).
+    // If they use admin login for a user account, reject it.
+    if (!isUser && role === "user") {
+      errorEl.textContent = "Unauthorized: This portal is for Staff only.";
+      return;
+    }
+
     // Store token and user
     localStorage.setItem("token", data.data.token);
     localStorage.setItem("user", JSON.stringify(data.data.user));
 
     // Redirect based on role
-    if (data.data.user.role === "admin") {
+    if (role === "admin" || role === "employee") {
       window.location.href = "/admin.html";
     } else {
       window.location.href = "/";
@@ -96,7 +121,7 @@ async function handleLogin(e) {
     errorEl.textContent = "Network error. Please try again.";
   } finally {
     btn.disabled = false;
-    btn.innerHTML = `<span>Sign In</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`;
+    btn.innerHTML = originalHtml;
   }
 }
 

@@ -29,13 +29,14 @@
 
       <!-- Tab Switcher -->
       <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
-        <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</button>
+        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">User</button>
+        <button class="auth-tab" id="tab-admin" onclick="switchTab('admin')">Staff</button>
+        <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Sign Up</button>
         <div class="auth-tab-indicator" id="tab-indicator"></div>
       </div>
 
-      <!-- Login Form -->
-      <form class="auth-form active" id="form-login" onsubmit="handleLogin(event)">
+      <!-- User Login Form -->
+      <form class="auth-form active" id="form-login" onsubmit="handleLogin(event, 'user')">
         <div class="form-group">
           <label for="login-email">Email Address</label>
           <div class="input-wrapper">
@@ -54,10 +55,36 @@
           </div>
         </div>
         <button type="submit" class="btn-auth" id="btn-login">
-          <span>Sign In</span>
+          <span>Sign In as User</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </button>
         <div class="auth-error" id="login-error"></div>
+      </form>
+
+      <!-- Admin Login Form -->
+      <form class="auth-form" id="form-admin" onsubmit="handleLogin(event, 'admin')">
+        <div class="form-group">
+          <label for="admin-email">Staff Email Address</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <input type="email" id="admin-email" placeholder="staff@example.com" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Staff Password</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input type="password" id="admin-password" placeholder="••••••••" required minlength="6" />
+            <button type="button" class="toggle-password" onclick="togglePassword('admin-password', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-auth" id="btn-admin-login" style="background: linear-gradient(135deg, #1d4ed8, #3b82f6)">
+          <span>Sign In as Staff</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+        <div class="auth-error" id="admin-error"></div>
       </form>
 
       <!-- Register Form -->

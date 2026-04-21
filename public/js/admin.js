@@ -6,6 +6,7 @@ const API = "";
 let adminToken = "";
 let allProducts = [];
 let allOrders = [];
+let allEmployees = [];
 
 // -------- Auth Check --------
 (function checkAdminAuth() {
@@ -56,6 +57,7 @@ function switchAdminTab(tab, el) {
   if (tab === "products") loadProducts();
   if (tab === "orders") loadOrders();
   if (tab === "dashboard") loadDashboard();
+  if (tab === "employees") loadEmployees();
 
   // Close mobile sidebar
   document.getElementById("sidebar").classList.remove("open");
@@ -391,6 +393,55 @@ function showToast(icon, message) {
 }
 
 // -------- Employees --------
+async function loadEmployees() {
+  try {
+    const res = await adminApi("/api/auth/employees");
+    allEmployees = res.data || [];
+    renderEmployeesTable(allEmployees);
+  } catch (err) {
+    console.error("Failed to load employees:", err);
+  }
+}
+
+function renderEmployeesTable(employees) {
+  const container = document.getElementById("employees-table");
+  if (!employees.length) {
+    container.innerHTML = `<p class="empty-state">No employees found.</p>`;
+    return;
+  }
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email Address</th>
+          <th>Role</th>
+          <th>Hired Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${employees
+          .map(
+            (e) => `
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 14px;">${e.name.charAt(0).toUpperCase()}</div>
+                <strong>${e.name}</strong>
+              </div>
+            </td>
+            <td>${e.email}</td>
+            <td><span class="badge badge-success">${e.role}</span></td>
+            <td>${new Date(e.created_at).toLocaleDateString()}</td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
 function openEmployeeModal() {
   document.getElementById("employee-form").reset();
   document.getElementById("employee-modal").classList.add("open");
@@ -423,6 +474,7 @@ async function saveEmployee(e) {
     if (data.success) {
       showToast("✅", "Employee successfully registered!");
       closeEmployeeModal();
+      loadEmployees();
     } else {
       showToast("❌", data.message || "Failed to register employee.");
     }
