@@ -119,6 +119,7 @@ function navigateTo(page) {
   }
 
   // Refresh page data
+  if (page === "home") loadProducts();
   if (page === "cart") renderCart();
   if (page === "checkout") renderCheckoutSummary();
   if (page === "orders") renderOrderHistory();

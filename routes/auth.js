@@ -155,6 +155,27 @@ router.get("/employees", authenticate, requireStrictAdmin, async (req, res) => {
   }
 });
 
+/**
+ * @route   DELETE /api/auth/employee/:id
+ * @desc    Delete an employee
+ * @access  Admin
+ */
+router.delete("/employee/:id", authenticate, requireStrictAdmin, async (req, res) => {
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM users WHERE id = ? AND role = 'employee'",
+      [req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Employee not found." });
+    }
+    res.json({ success: true, message: "Employee terminated successfully." });
+  } catch (err) {
+    console.error("Delete employee error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
 // GET /api/auth/me — get current user profile
 router.get("/me", authenticate, async (req, res) => {
   try {

@@ -417,6 +417,7 @@ function renderEmployeesTable(employees) {
           <th>Email Address</th>
           <th>Role</th>
           <th>Hired Date</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -433,6 +434,11 @@ function renderEmployeesTable(employees) {
             <td>${e.email}</td>
             <td><span class="badge badge-success">${e.role}</span></td>
             <td>${new Date(e.created_at).toLocaleDateString()}</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-sm btn-delete" onclick="terminateEmployee(${e.id}, '${e.name.replace(/'/g, "\\'")}')">Terminate</button>
+              </div>
+            </td>
           </tr>
         `
           )
@@ -440,6 +446,22 @@ function renderEmployeesTable(employees) {
       </tbody>
     </table>
   `;
+}
+
+async function terminateEmployee(id, name) {
+  if (!confirm(`Are you sure you want to terminate "${name}"? This will revoke their access.`)) return;
+
+  try {
+    const res = await adminApi(`/api/auth/employee/${id}`, { method: "DELETE" });
+    if (res.success) {
+      showToast("🗑️", "Employee terminated.");
+      loadEmployees();
+    } else {
+      showToast("❌", res.message || "Failed to terminate employee.");
+    }
+  } catch (err) {
+    showToast("❌", "Network error.");
+  }
 }
 
 function openEmployeeModal() {
