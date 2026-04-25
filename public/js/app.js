@@ -607,3 +607,59 @@ function setupFooterDate() {
   update();
   setInterval(update, 1000);
 }
+
+// -------- Product Modal (3D Integration) --------
+window.openProductModal = function(productData) {
+  const modal = document.getElementById("product-modal");
+  const modalBody = document.getElementById("product-modal-body");
+  
+  if (!modal || !modalBody) return;
+  
+  let varietiesHtml = '';
+  if (productData.varieties && productData.varieties.length > 0) {
+    varietiesHtml = `
+      <h4 style="margin-bottom: 10px; color: var(--slate-300);">Available Varieties</h4>
+      <div class="variety-options">
+        ${productData.varieties.map((v, i) => `
+          <label class="variety-option ${i===0 ? 'selected' : ''}">
+            <input type="radio" name="variety" value="${v.id}" ${i===0 ? 'checked' : ''} style="display:none;" onchange="document.querySelectorAll('.variety-option').forEach(el=>el.classList.remove('selected')); this.parentElement.classList.add('selected');">
+            <div>
+              <strong style="color: #fff;">${v.name}</strong><br>
+              <small style="color: var(--slate-400);">Stock: ${v.stock}</small>
+            </div>
+            <div style="font-weight: 800; color: var(--green-400);">$${v.price.toFixed(2)} / kg</div>
+          </label>
+        `).join('')}
+      </div>
+    `;
+  }
+  
+  modalBody.innerHTML = `
+    <h3 style="color: #fff;">${productData.name}</h3>
+    <p>${productData.desc}</p>
+    ${varietiesHtml}
+    <button class="btn btn-primary btn-full btn-lg" onclick="addVarietyToCart('${productData.id}')" style="margin-top: 10px;">
+      Add to Cart
+    </button>
+  `;
+  
+  modal.style.display = "flex";
+};
+
+window.closeProductModal = function(event) {
+  if (event && event.target.id !== "product-modal") return; // click outside only
+  const modal = document.getElementById("product-modal");
+  if (modal) modal.style.display = "none";
+};
+
+window.addVarietyToCart = function(baseProductId) {
+  const checked = document.querySelector('input[name="variety"]:checked');
+  if(checked) {
+    showToast("✅", "Added variety to cart!");
+    closeProductModal();
+  } else {
+    // Fallback if no varieties
+    addToCart(1); // Demo ID
+    closeProductModal();
+  }
+};
