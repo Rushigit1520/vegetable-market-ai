@@ -1,60 +1,117 @@
 # 🥬 Vegetable Market AI — 3D Interactive Experience
 
-A highly creative, interactive, and visually stunning web application for an online vegetable market. This version transforms the traditional shopping experience into a **"Vegetable Party"** using immersive 3D animations and a premium dark glassmorphism interface.
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-## ✨ New & Advanced Features
+![Project Mockup](public/assets/mockup.png)
 
-- **3D "Vegetable Party" Background**: A full-screen, interactive 3D scene built with **Three.js** featuring procedural vegetables dancing and floating in a bioluminescent environment.
-- **20+ Procedural 3D Models**: Includes interactive models for Potato, Onion, Tomato, Brinjal, Cauliflower, Cabbage, Spinach, Green Chili, Carrot, Peas, Capsicum, Gourds, Pumpkin, Drumstick, and Radish.
-- **Interactive Objects**: Vegetables react to cursor movement with scale and glow animations. Clicking a 3D vegetable opens its specific product details.
-- **Modern Dark Glassmorphism UI**: A high-fidelity dark theme utilizing semi-transparent "frosted glass" elements (`backdrop-filter`) for a sleek, premium feel.
-- **Dynamic Product Modal**: Implemented a modal system that bridges the 3D scene and the product database, allowing users to view varieties and add to cart directly from the animation.
-- **Role-Based Inventory Management**: Integrated system for Admins and Employees to manage stock and orders in real-time.
+> **Experience the future of grocery shopping.** This isn't just a market; it's a **"Vegetable Party"** where high-fidelity 3D procedural models meet a premium glassmorphism interface.
+
+---
+
+## 🌟 Key Features
+
+### 🎮 Immersive 3D Experience
+- **Bioluminescent Environment**: A stunning full-screen 3D scene built with **Three.js**.
+- **Procedural Vegetables**: Over 20+ custom 3D models (Potato, Tomato, Onion, etc.) with unique animations.
+- **Interactive Feedback**: Vegetables glow and scale on hover; clicking them triggers real-time data fetching.
+
+### 💎 Premium Design System
+- **Dark Glassmorphism**: High-fidelity UI using semi-transparent "frosted glass" elements (`backdrop-filter`).
+- **Neon Aesthetic**: Vibrant green and purple accents for a modern, futuristic feel.
+- **Micro-Animations**: Smooth transitions and hover effects powered by modern CSS and GSAP.
+
+### 🔐 Enterprise-Grade Backend
+- **Role-Based Access**: Specialized dashboards for **Admins** and **Employees**.
+- **Live Inventory**: Transactional stock management with MySQL to prevent oversales.
+- **Secure Auth**: JWT-based authentication with BCrypt password hashing.
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: HTML5, CSS3 (Vanilla + Glassmorphism), JavaScript (ES6+)
-- **Animation/3D**: **Three.js** (3D Rendering), Custom Procedural Modeling
-- **Backend**: Node.js, Express.js
-- **Database**: MySQL (Transactional stock management)
-- **Security**: JWT Authentication & BCrypt Password Hashing
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | HTML5, CSS3 (Glassmorphism), Vanilla JS (ES6+) |
+| **3D Engine** | **Three.js**, Custom Procedural Geometry |
+| **Backend** | Node.js, Express.js |
+| **Database** | MySQL (with `mysql2` & Promises) |
+| **Security** | JWT, BCrypt, CORS, Dotenv |
+
+---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- [Node.js](https://nodejs.org/)
-- [MySQL](https://www.mysql.com/)
+### 1. Prerequisites
+- **Node.js** (v18 or higher)
+- **MySQL** (Running locally or via Docker)
 
-### Installation
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com/Rushigit1520/vegetable-market-ai.git
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Rushigit1520/vegetable-market-ai.git
-   ```
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-3. **Configure Environment**: Create a `.env` file based on `.env.example` with your MySQL credentials.
-4. **Seed Database**: Initialize the database and load the 3D-compatible product list:
-   ```bash
-   npm run seed
-   ```
+# Navigate to project
+cd vegetable-market-ai
 
-### Running the App
+# Install dependencies
+npm install
+```
 
-Start the server:
+### 3. Database Configuration
+Create a `.env` file in the root directory:
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=your_password
+DB_NAME=veg_market_db
+JWT_SECRET=super_secret_key
+PORT=3000
+```
+
+### 4. Initialization
+Seed the database with the interactive product catalog:
+```bash
+npm run seed
+```
+
+### 5. Launch
 ```bash
 npm start
 ```
-Visit `http://localhost:3000` to experience the 3D vegetable party!
+Open **[http://localhost:3000](http://localhost:3000)** to enter the party!
 
-## 🔐 Admin Dashboard
+---
 
-Access the management suite at `/login.html`:
-- **Email:** `admin@freshcart.com`
-- **Password:** `admin123`
+## 📂 Project Structure
+
+```text
+├── config/             # Database connection & seed scripts
+├── data/               # Product JSON & static data
+├── middleware/         # JWT & Auth validation
+├── public/             # Frontend assets
+│   ├── assets/         # UI Mockups & Images
+│   ├── css/            # Glassmorphism & Layout styles
+│   ├── js/             # Three.js scene & Main logic
+│   └── *.html          # UI Pages (Index, Login, Admin)
+├── routes/             # API Endpoints (Auth, Products, Cart)
+├── server.js           # Express Entry Point
+└── README.md           # This file!
+```
+
+---
+
+## 🔐 Default Credentials
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin@freshcart.com` | `admin123` |
+| **Employee** | `employee@freshcart.com` | `emp123` |
+
+---
 
 ## 👤 Credits
 
-Built by **Rushigit1520** with the power of Advanced AI Agents.
+Developed with ❤️ by **Rushigit1520** using the power of **Antigravity AI**.
