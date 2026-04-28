@@ -1,4 +1,4 @@
-# 🥬 Vegetable Market AI — 3D Interactive Experience
+# 🥬 Vegetable Market AI — High-Fidelity 3D Storefront
 
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)](https://threejs.org/)
@@ -7,26 +7,30 @@
 
 ![Project Mockup](public/assets/mockup.png)
 
-> **Experience the future of grocery shopping.** This isn't just a market; it's a **"Vegetable Party"** where high-fidelity 3D procedural models meet a premium glassmorphism interface.
+> **The future of fresh produce shopping.** Vegetable Market AI transforms the mundane task of grocery shopping into a premium, interactive experience. Combining a bioluminescent 3D vegetable "party" with a state-of-the-art glassmorphism interface and high-resolution photographic assets.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Premium Features
 
-### 🎮 Immersive 3D Experience
-- **Bioluminescent Environment**: A stunning full-screen 3D scene built with **Three.js**.
-- **Procedural Vegetables**: Over 20+ custom 3D models (Potato, Tomato, Onion, etc.) with unique animations.
-- **Interactive Feedback**: Vegetables glow and scale on hover; clicking them triggers real-time data fetching.
+### 📸 High-Fidelity Visual Assets
+- **Professional Photography**: Replaced legacy symbolic icons with a curated catalog of realistic, high-resolution product images.
+- **Visual Consistency**: Every product card, modal, and checkout item features professional-grade lighting and presentation.
 
-### 💎 Premium Design System
-- **Dark Glassmorphism**: High-fidelity UI using semi-transparent "frosted glass" elements (`backdrop-filter`).
-- **Neon Aesthetic**: Vibrant green and purple accents for a modern, futuristic feel.
-- **Micro-Animations**: Smooth transitions and hover effects powered by modern CSS and GSAP.
+### 🎮 Immersive 3D Interactive Scene
+- **Bioluminescent Environment**: A stunning full-screen 3D scene built with **Three.js** where vegetables float in a cosmic, neon-lit space.
+- **Dynamic Interaction**: 3D models respond to user cursor movements with smooth animations, glows, and scaling effects.
+- **Seamless Integration**: Clicking a 3D vegetable object triggers a premium UI overlay with real-time product data.
 
-### 🔐 Enterprise-Grade Backend
-- **Role-Based Access**: Specialized dashboards for **Admins** and **Employees**.
-- **Live Inventory**: Transactional stock management with MySQL to prevent oversales.
-- **Secure Auth**: JWT-based authentication with BCrypt password hashing.
+### 💎 Advanced Glassmorphism Design
+- **Frosted Aesthetics**: High-fidelity UI using semi-transparent elements with `backdrop-filter` for a modern "Apple-style" glass effect.
+- **Neon-Glow Palette**: A sophisticated dark-mode palette featuring vibrant emerald greens and deep purples.
+- **Micro-Interactions**: Fluid transitions, buttery-smooth hover states, and dynamic typography powered by modern CSS.
+
+### 🔐 Enterprise-Grade Backend & Logic
+- **Role-Based Access Control (RBAC)**: Distinct, secure interfaces for **Admins** (Inventory/User management) and **Employees** (Order fulfillment).
+- **Transactional Inventory**: Real-time stock management with MySQL to ensure accurate availability and prevent oversales.
+- **Secure Architecture**: JWT-based authentication, password hashing with BCrypt, and robust middleware protection.
 
 ---
 
@@ -34,19 +38,19 @@
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Frontend** | HTML5, CSS3 (Glassmorphism), Vanilla JS (ES6+) |
-| **3D Engine** | **Three.js**, Custom Procedural Geometry |
+| **Frontend** | HTML5, Modern CSS (Glassmorphism), Vanilla JS (ES6+) |
+| **3D Engine** | **Three.js**, Custom 3D Geometry & Shaders |
 | **Backend** | Node.js, Express.js |
-| **Database** | MySQL (with `mysql2` & Promises) |
-| **Security** | JWT, BCrypt, CORS, Dotenv |
+| **Database** | MySQL (Connection Pooling & Promises) |
+| **Auth** | JWT, BCrypt, Role-Based Middleware |
 
 ---
 
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- **Node.js** (v18 or higher)
-- **MySQL** (Running locally or via Docker)
+- **Node.js** (v18+)
+- **MySQL** (Running instance)
 
 ### 2. Installation
 ```bash
@@ -72,7 +76,7 @@ PORT=3000
 ```
 
 ### 4. Initialization
-Seed the database with the interactive product catalog:
+Seed the database with the premium product catalog:
 ```bash
 npm run seed
 ```
@@ -81,24 +85,24 @@ npm run seed
 ```bash
 npm start
 ```
-Open **[http://localhost:3000](http://localhost:3000)** to enter the party!
+Visit **[http://localhost:3000](http://localhost:3000)** to enter the experience!
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Architecture
 
 ```text
-├── config/             # Database connection & seed scripts
-├── data/               # Product JSON & static data
-├── middleware/         # JWT & Auth validation
-├── public/             # Frontend assets
-│   ├── assets/         # UI Mockups & Images
-│   ├── css/            # Glassmorphism & Layout styles
-│   ├── js/             # Three.js scene & Main logic
-│   └── *.html          # UI Pages (Index, Login, Admin)
-├── routes/             # API Endpoints (Auth, Products, Cart)
-├── server.js           # Express Entry Point
-└── README.md           # This file!
+├── config/             # Database connection & seed logic
+├── data/               # Product catalog & static assets registry
+├── middleware/         # Security & RBAC layers
+├── public/             # Static Assets & Frontend
+│   ├── assets/         # High-resolution product photography
+│   ├── css/            # Premium Design System (CSS Variables/Glass)
+│   ├── js/             # Three.js scene & Interactive state logic
+│   └── *.html          # Semantic HTML5 Layouts
+├── routes/             # RESTful API Endpoints
+├── server.js           # Server Entry Point
+└── README.md           # Documentation
 ```
 
 ---
