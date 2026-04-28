@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS products (
   price DECIMAL(10,2) NOT NULL,
   unit VARCHAR(30) NOT NULL,
   description TEXT,
-  image VARCHAR(10) DEFAULT '🥬',
+  image VARCHAR(255) DEFAULT '/assets/carrot.png',
   stock INT DEFAULT 0,
   rating DECIMAL(2,1) DEFAULT 0.0,
   reviews INT DEFAULT 0,

@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vegetable Market Using AI — Fresh Groceries Delivered</title>
-  <meta name="description" content="Shop premium groceries online. Fresh fruits, vegetables, dairy, bakery and more delivered to your doorstep." />
+  <title>Vegetable Market AI — Future of Groceries</title>
+  <meta name="description" content="Shop premium groceries with AI-driven insights. Fresh fruits, vegetables, and more delivered to your doorstep." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -15,232 +15,250 @@
   <!-- ============ 3D BACKGROUND ============ -->
   <canvas id="bg-canvas"></canvas>
   
-  <!-- ============ HEADER ============ -->
-  <header class="header" id="main-header">
-    <div class="header-inner container">
-      <a href="#" class="logo" id="logo-link" onclick="navigateTo('home')">
-        <span class="logo-icon">🛒</span>
-        <span class="logo-text">Vegetable<span class="logo-accent">Market AI</span></span>
-      </a>
-      <div class="search-bar" id="search-bar">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" id="search-input" placeholder="Search groceries..." autocomplete="off" />
-      </div>
-      <nav class="header-actions">
-        <!-- Auth buttons — dynamic -->
-        <a href="/login.html" class="btn-header-auth" id="btn-login-header" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Login
+  <div class="app-layout">
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="logo" onclick="navigateTo('home')">
+          <span class="logo-text">Vegetable <span class="logo-accent">Market AI</span></span>
         </a>
-        <button class="btn-icon" id="orders-btn" onclick="navigateTo('orders')" aria-label="My Orders" style="display:none;" title="My Orders">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="navigateTo('home')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Categories</span>
         </button>
-        <button class="btn-icon" id="cart-btn" onclick="navigateTo('cart')" aria-label="View cart">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          <span class="cart-badge" id="cart-badge">0</span>
+        <button class="nav-item" onclick="showToast('❤️', 'Coming Soon!')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span>My Farm Picks</span>
         </button>
-        <!-- User menu (shown when logged in) -->
-        <div class="user-menu" id="user-menu" style="display:none;">
-          <button class="user-menu-btn" onclick="toggleUserMenu()" id="user-menu-btn">
-            <div class="user-avatar" id="user-avatar">U</div>
-          </button>
-          <div class="user-dropdown" id="user-dropdown">
-            <div class="user-dropdown-header">
-              <span class="dropdown-name" id="dropdown-name">User</span>
-              <span class="dropdown-email" id="dropdown-email">user@email.com</span>
-            </div>
-            <div class="user-dropdown-divider"></div>
-            <!-- Admin link (shows only if admin) -->
-            <button class="dropdown-item" onclick="window.location.href='/admin.html';" id="btn-admin-link" style="display:none;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              Admin Dashboard
-            </button>
-            <button class="dropdown-item" onclick="navigateTo('orders'); toggleUserMenu();">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              My Orders
-            </button>
-            <button class="dropdown-item dropdown-logout" onclick="logout()" id="btn-logout">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              Logout
-            </button>
-          </div>
-        </div>
+        <button class="nav-item" onclick="showToast('✨', 'AI Insights loading...')">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <span>AI Insights</span>
+        </button>
       </nav>
+      <div class="sidebar-footer">
+        <div class="user-profile-mini" id="user-profile-mini" style="display:none;">
+          <div class="user-avatar-small" id="user-avatar-sidebar">U</div>
+          <div class="user-info-small">
+            <span class="user-name-small" id="sidebar-user-name">User</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-container">
+      <!-- ============ HEADER ============ -->
+      <header class="header" id="main-header">
+        <div class="header-content">
+          <nav class="top-nav">
+            <button class="top-nav-link active" onclick="navigateTo('home')">Market</button>
+            <button class="top-nav-link" onclick="navigateTo('orders')">Orders</button>
+            <button class="top-nav-link" onclick="showToast('🧠', 'Analyzing your preferences...')">Smart Picks</button>
+          </nav>
+
+          <div class="search-container">
+            <div class="search-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" id="search-input" placeholder="Search vegetables..." autocomplete="off" />
+            </div>
+          </div>
+
+          <div class="header-actions">
+            <button class="action-btn" id="cart-btn" onclick="navigateTo('cart')" aria-label="View cart">
+              <span>My Cart ( <span id="cart-badge">0</span> )</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </button>
+            
+            <button class="action-btn" id="btn-login-header" onclick="window.location.href='/login.html'">
+              <span>Account</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </button>
+
+            <!-- User dropdown (simplified for layout) -->
+            <div class="user-menu-wrapper" id="user-menu" style="display:none;">
+              <button class="action-btn" onclick="logout()">
+                <span>Logout</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ============ MAIN CONTENT ============ -->
+      <main class="main-content" id="main-content">
+
+        <!-- HOME / MARKET PAGE -->
+        <section class="page page-home active" id="page-home">
+          <!-- Overview Section -->
+          <div class="dashboard-overview">
+            <div class="overview-group">
+              <h2 class="group-title">Market Overview</h2>
+              <div class="overview-cards">
+                <div class="stat-card glass-card">
+                  <div class="stat-icon-wrapper green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                  </div>
+                  <div class="stat-info">
+                    <span class="stat-value">2,39K+</span>
+                    <span class="stat-label">Fresh Arrivals</span>
+                  </div>
+                </div>
+                <div class="stat-card glass-card">
+                  <div class="stat-icon-wrapper purple">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                  </div>
+                  <div class="stat-info">
+                    <span class="stat-value">141+</span>
+                    <span class="stat-label">AI Recommendations</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="overview-group">
+              <h2 class="group-title">Trending Categories</h2>
+              <div class="trending-cards">
+                <div class="trend-card glass-card vibrant">
+                  <div class="trend-icon green">🥦</div>
+                  <div class="trend-info">
+                    <span class="trend-name">Vibrant Veggies</span>
+                    <div class="trend-stats">
+                      <div class="avatars">
+                        <span class="avatar"></span>
+                        <span class="avatar"></span>
+                        <span class="avatar"></span>
+                      </div>
+                      <span class="trend-count">56.3K</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="trend-card glass-card root">
+                  <div class="trend-icon purple">🥕</div>
+                  <div class="trend-info">
+                    <span class="trend-name">Root Delights</span>
+                    <div class="trend-stats">
+                      <div class="avatars">
+                        <span class="avatar"></span>
+                        <span class="avatar"></span>
+                        <span class="avatar"></span>
+                      </div>
+                      <span class="trend-count">19.7K</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Featured Produce -->
+          <div class="produce-section">
+            <h2 class="group-title">Featured Produce</h2>
+            <!-- Category Filter -->
+            <div class="category-filter" id="category-filter">
+              <button class="cat-chip active" data-category="All" onclick="filterCategory('All', this)">All</button>
+            </div>
+            <!-- Product Grid -->
+            <div class="product-grid" id="product-grid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- CART PAGE -->
+        <section class="page page-cart" id="page-cart">
+          <div class="container">
+            <button class="back-link" onclick="navigateTo('home')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+              Continue Shopping
+            </button>
+            <h2 class="page-title">Your Cart</h2>
+            <div class="login-prompt" id="cart-login-prompt" style="display:none;">
+              <h3>Please log in to use your cart</h3>
+              <a href="/login.html" class="btn btn-primary">Login / Register</a>
+            </div>
+            <div class="cart-layout">
+              <div class="cart-items" id="cart-items"></div>
+              <div class="cart-summary" id="cart-summary"></div>
+            </div>
+            <div class="cart-empty" id="cart-empty" style="display:none">
+              <div class="empty-icon">🛒</div>
+              <h3>Your cart is empty</h3>
+              <button class="btn btn-primary" onclick="navigateTo('home')">Start Shopping</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- CHECKOUT PAGE -->
+        <section class="page page-checkout" id="page-checkout">
+          <div class="container">
+            <button class="back-link" onclick="navigateTo('cart')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+              Back to Cart
+            </button>
+            <h2 class="page-title">Checkout</h2>
+            <div class="checkout-layout">
+              <form class="checkout-form" id="checkout-form" onsubmit="placeOrder(event)">
+                <div class="form-section glass-card">
+                  <h3 class="form-section-title">Delivery Details</h3>
+                  <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="customer-phone" placeholder="+1 (555) 000-0000" />
+                  </div>
+                  <div class="form-group">
+                    <label>Delivery Address</label>
+                    <textarea id="customer-address" rows="3" placeholder="123 Main St, Apt 4, NY 10001" required></textarea>
+                  </div>
+                </div>
+                <div class="form-section glass-card">
+                  <h3 class="form-section-title">Payment Method</h3>
+                  <div class="payment-options">
+                    <label class="payment-option selected">
+                      <input type="radio" name="payment" value="cod" checked />
+                      <div class="payment-card">💵 Cash on Delivery</div>
+                    </label>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg btn-full" id="place-order-btn">Place Order</button>
+              </form>
+              <div class="checkout-summary glass-card" id="checkout-summary"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ORDER CONFIRMATION PAGE -->
+        <section class="page page-confirmation" id="page-confirmation">
+          <div class="container">
+            <div class="confirmation-card glass-card" id="confirmation-card"></div>
+          </div>
+        </section>
+
+        <!-- ORDER HISTORY PAGE -->
+        <section class="page page-orders" id="page-orders">
+          <div class="container">
+            <button class="back-link" onclick="navigateTo('home')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+              Continue Shopping
+            </button>
+            <h2 class="page-title">My Orders</h2>
+            <div class="orders-list" id="orders-list"></div>
+            <div class="orders-empty" id="orders-empty" style="display:none;">
+              <h3>No orders yet</h3>
+              <button class="btn btn-primary" onclick="navigateTo('home')">Start Shopping</button>
+            </div>
+          </div>
+        </section>
+
+      </main>
     </div>
-  </header>
-
-  <!-- ============ MAIN CONTENT ============ -->
-  <main class="main" id="main-content">
-
-    <!-- HOME / PRODUCTS PAGE -->
-    <section class="page page-home active" id="page-home">
-      <!-- Hero -->
-      <div class="hero">
-        <div class="hero-inner container">
-          <div class="hero-content">
-            <span class="hero-badge">🌿 Farm Fresh</span>
-            <h1 class="hero-title">Groceries delivered in <span class="text-gradient">minutes</span></h1>
-            <p class="hero-subtitle">Shop premium fruits, vegetables, dairy and more — handpicked for quality, delivered to your doorstep.</p>
-            <button class="btn btn-primary btn-lg" onclick="document.getElementById('products-section').scrollIntoView({behavior:'smooth'})">
-              Shop Now
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-arrow"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </button>
-          </div>
-          <div class="hero-visual">
-            <div class="hero-3d-placeholder">
-              <!-- 3D scene handles the visual elements here -->
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Products Section -->
-      <div class="products-section" id="products-section">
-        <div class="container">
-          <div class="section-header">
-            <h2 class="section-title">Fresh Picks</h2>
-            <p class="section-subtitle">Handpicked daily from local farms</p>
-          </div>
-          <!-- Category Filter -->
-          <div class="category-filter" id="category-filter">
-            <button class="cat-chip active" data-category="All" onclick="filterCategory('All', this)">All</button>
-          </div>
-          <!-- Product Grid -->
-          <div class="product-grid" id="product-grid">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CART PAGE -->
-    <section class="page page-cart" id="page-cart">
-      <div class="container">
-        <button class="back-link" onclick="navigateTo('home')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-          Continue Shopping
-        </button>
-        <h2 class="page-title">Your Cart</h2>
-        <!-- Login prompt for guests -->
-        <div class="login-prompt" id="cart-login-prompt" style="display:none;">
-          <div class="prompt-icon">🔐</div>
-          <h3>Please log in to use your cart</h3>
-          <p>You need an account to add items and place orders.</p>
-          <a href="/login.html" class="btn btn-primary">Login / Register</a>
-        </div>
-        <div class="cart-layout">
-          <div class="cart-items" id="cart-items">
-            <!-- Populated by JS -->
-          </div>
-          <div class="cart-summary" id="cart-summary">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-        <div class="cart-empty" id="cart-empty" style="display:none">
-          <div class="empty-icon">🛒</div>
-          <h3>Your cart is empty</h3>
-          <p>Looks like you haven't added anything yet.</p>
-          <button class="btn btn-primary" onclick="navigateTo('home')">Start Shopping</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- CHECKOUT PAGE -->
-    <section class="page page-checkout" id="page-checkout">
-      <div class="container">
-        <button class="back-link" onclick="navigateTo('cart')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-          Back to Cart
-        </button>
-        <h2 class="page-title">Checkout</h2>
-        <div class="checkout-layout">
-          <form class="checkout-form" id="checkout-form" onsubmit="placeOrder(event)">
-            <div class="form-section">
-              <h3 class="form-section-title">
-                <span class="form-step">1</span>
-                Delivery Details
-              </h3>
-              <div class="form-group">
-                <label for="customer-phone">Phone Number</label>
-                <input type="tel" id="customer-phone" placeholder="+1 (555) 000-0000" />
-              </div>
-              <div class="form-group">
-                <label for="customer-address">Delivery Address</label>
-                <textarea id="customer-address" rows="3" placeholder="123 Main St, Apt 4, New York, NY 10001" required></textarea>
-              </div>
-            </div>
-            <div class="form-section">
-              <h3 class="form-section-title">
-                <span class="form-step">2</span>
-                Payment Method
-              </h3>
-              <div class="payment-options">
-                <label class="payment-option selected">
-                  <input type="radio" name="payment" value="cod" checked />
-                  <span class="payment-card">
-                    <span class="payment-icon">💵</span>
-                    <span>Cash on Delivery</span>
-                  </span>
-                </label>
-                <label class="payment-option">
-                  <input type="radio" name="payment" value="card" />
-                  <span class="payment-card">
-                    <span class="payment-icon">💳</span>
-                    <span>Credit / Debit Card</span>
-                  </span>
-                </label>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary btn-lg btn-full" id="place-order-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Place Order
-            </button>
-          </form>
-          <div class="checkout-summary" id="checkout-summary">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ORDER CONFIRMATION PAGE -->
-    <section class="page page-confirmation" id="page-confirmation">
-      <div class="container">
-        <div class="confirmation-card" id="confirmation-card">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-    </section>
-
-    <!-- ORDER HISTORY PAGE -->
-    <section class="page page-orders" id="page-orders">
-      <div class="container">
-        <button class="back-link" onclick="navigateTo('home')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-          Continue Shopping
-        </button>
-        <h2 class="page-title">My Orders</h2>
-        <div class="orders-list" id="orders-list">
-          <!-- Populated by JS -->
-        </div>
-        <div class="orders-empty" id="orders-empty" style="display:none;">
-          <div class="empty-icon">📦</div>
-          <h3>No orders yet</h3>
-          <p>When you place an order, it will appear here.</p>
-          <button class="btn btn-primary" onclick="navigateTo('home')">Start Shopping</button>
-        </div>
-      </div>
-    </section>
-
-  </main>
+  </div>
 
   <!-- ============ PRODUCT MODAL ============ -->
   <div class="modal-overlay" id="product-modal" style="display:none;" onclick="closeProductModal(event)">
     <div class="modal-content glass-card" id="product-modal-content">
       <button class="modal-close" onclick="closeProductModal()">&times;</button>
-      <div class="modal-body" id="product-modal-body">
-        <!-- Populated by JS -->
-      </div>
+      <div class="modal-body" id="product-modal-body"></div>
     </div>
   </div>
 
@@ -251,7 +269,7 @@
   <footer class="footer">
     <div class="container">
       <p id="date-time"></p>
-      <p>Created by Rushikesh Farakate</p>
+      <p>Vegetable Market AI — Premium Dashboard</p>
     </div>
   </footer>
 

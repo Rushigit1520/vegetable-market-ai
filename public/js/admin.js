@@ -171,7 +171,13 @@ function renderProductsTable(products) {
           <tr>
             <td>
               <div class="product-cell">
-                <span class="product-emoji">${p.image}</span>
+                <div class="product-preview-admin">
+                  ${
+                    p.image && p.image.startsWith("/")
+                      ? `<img src="${p.image}" alt="${p.name}" style="width: 28px; height: 28px; object-fit: contain; mix-blend-mode: screen; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2))">`
+                      : p.image
+                  }
+                </div>
                 <span class="product-cell-name">${p.name}</span>
               </div>
             </td>

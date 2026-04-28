@@ -6,7 +6,7 @@ const products = [
     "price": 1.49,
     "unit": "bunch",
     "description": "Sweet, ripe organic bananas. Perfect for smoothies, snacking, or baking.",
-    "image": "🍌",
+    "image": "/assets/banana.png",
     "inStock": true,
     "rating": 4.7,
     "reviews": 234
@@ -18,7 +18,7 @@ const products = [
     "price": 3.99,
     "unit": "pack",
     "description": "Hand-picked, juicy strawberries bursting with flavor.",
-    "image": "🍓",
+    "image": "/assets/strawberry.png",
     "inStock": true,
     "rating": 4.8,
     "reviews": 189
@@ -30,7 +30,7 @@ const products = [
     "price": 2.49,
     "unit": "each",
     "description": "Perfectly ripe Hass avocados, ready to eat today.",
-    "image": "🥑",
+    "image": "/assets/avocado.png",
     "inStock": true,
     "rating": 4.5,
     "reviews": 312
@@ -42,7 +42,7 @@ const products = [
     "price": 1.99,
     "unit": "lb",
     "description": "Crisp and sweet Fuji apples, farm fresh.",
-    "image": "🍎",
+    "image": "/assets/apple.png",
     "inStock": true,
     "rating": 4.6,
     "reviews": 198
@@ -54,7 +54,7 @@ const products = [
     "price": 2.29,
     "unit": "head",
     "description": "Vibrant green broccoli crowns, packed with nutrients.",
-    "image": "🥦",
+    "image": "/assets/broccoli.png",
     "inStock": true,
     "rating": 4.4,
     "reviews": 156
@@ -66,7 +66,7 @@ const products = [
     "price": 3.49,
     "unit": "bag",
     "description": "Tender baby spinach leaves, pre-washed and ready to use.",
-    "image": "🥬",
+    "image": "/assets/spinach.png",
     "inStock": true,
     "rating": 4.6,
     "reviews": 201
@@ -78,7 +78,7 @@ const products = [
     "price": 1.79,
     "unit": "lb",
     "description": "Crunchy, naturally sweet carrots. Great for snacking or cooking.",
-    "image": "🥕",
+    "image": "/assets/carrot.png",
     "inStock": true,
     "rating": 4.5,
     "reviews": 178
@@ -90,7 +90,7 @@ const products = [
     "price": 2.99,
     "unit": "pint",
     "description": "Vine-ripened cherry tomatoes, bursting with sweetness.",
-    "image": "🍅",
+    "image": "/assets/tomato.png",
     "inStock": true,
     "rating": 4.7,
     "reviews": 220
@@ -102,7 +102,7 @@ const products = [
     "price": 4.29,
     "unit": "gallon",
     "description": "Farm-fresh whole milk, pasteurized and homogenized.",
-    "image": "🥛",
+    "image": "/assets/milk.png",
     "inStock": true,
     "rating": 4.8,
     "reviews": 340
@@ -114,7 +114,7 @@ const products = [
     "price": 5.49,
     "unit": "32oz",
     "description": "Thick, creamy Greek yogurt with live active cultures.",
-    "image": "🫙",
+    "image": "/assets/yogurt.png",
     "inStock": true,
     "rating": 4.7,
     "reviews": 287
@@ -126,7 +126,7 @@ const products = [
     "price": 4.99,
     "unit": "block",
     "description": "Sharp aged cheddar cheese, perfect for sandwiches or snacking.",
-    "image": "🧀",
+    "image": "/assets/cheese.png",
     "inStock": true,
     "rating": 4.6,
     "reviews": 195
@@ -138,7 +138,7 @@ const products = [
     "price": 5.99,
     "unit": "dozen",
     "description": "Farm-fresh free-range eggs from pasture-raised hens.",
-    "image": "🥚",
+    "image": "/assets/eggs.png",
     "inStock": true,
     "rating": 4.9,
     "reviews": 412
@@ -150,7 +150,7 @@ const products = [
     "price": 4.49,
     "unit": "loaf",
     "description": "Artisan sourdough bread with a crispy crust and tangy flavor.",
-    "image": "🍞",
+    "image": "/assets/bread.png",
     "inStock": true,
     "rating": 4.8,
     "reviews": 267
@@ -162,7 +162,7 @@ const products = [
     "price": 3.99,
     "unit": "4-pack",
     "description": "Buttery, flaky French croissants, freshly baked.",
-    "image": "🥐",
+    "image": "/assets/croissant.png",
     "inStock": true,
     "rating": 4.7,
     "reviews": 198
@@ -174,7 +174,7 @@ const products = [
     "price": 7.99,
     "unit": "lb",
     "description": "Boneless, skinless chicken breast. Antibiotic-free.",
-    "image": "🍗",
+    "image": "/assets/eggs.png",
     "inStock": true,
     "rating": 4.6,
     "reviews": 301
@@ -186,7 +186,7 @@ const products = [
     "price": 11.99,
     "unit": "lb",
     "description": "Fresh Atlantic salmon fillet, sustainably sourced.",
-    "image": "🐟",
+    "image": "/assets/avocado.png",
     "inStock": true,
     "rating": 4.8,
     "reviews": 176
@@ -198,7 +198,7 @@ const products = [
     "price": 8.99,
     "unit": "bottle",
     "description": "Cold-pressed extra virgin olive oil from Mediterranean groves.",
-    "image": "🫒",
+    "image": "/assets/avocado.png",
     "inStock": true,
     "rating": 4.9,
     "reviews": 356
@@ -210,7 +210,7 @@ const products = [
     "price": 6.49,
     "unit": "5lb bag",
     "description": "Premium Thai jasmine rice, fragrant and fluffy.",
-    "image": "🍚",
+    "image": "/assets/bread.png",
     "inStock": true,
     "rating": 4.7,
     "reviews": 289
@@ -222,7 +222,7 @@ const products = [
     "price": 4.99,
     "unit": "12-pack",
     "description": "Refreshing natural sparkling water with a hint of lime.",
-    "image": "💧",
+    "image": "/assets/milk.png",
     "inStock": true,
     "rating": 4.5,
     "reviews": 167
@@ -234,7 +234,7 @@ const products = [
     "price": 5.49,
     "unit": "64oz",
     "description": "100% pure squeezed orange juice, no pulp, no concentrate.",
-    "image": "🍊",
+    "image": "/assets/apple.png",
     "inStock": true,
     "rating": 4.6,
     "reviews": 234
@@ -246,7 +246,7 @@ const products = [
     "price": 1.26,
     "unit": "lb",
     "description": "Versatile starchy root vegetable.",
-    "image": "🥔",
+    "image": "/assets/potato.png",
     "inStock": true,
     "rating": 4.8,
     "reviews": 99
@@ -258,7 +258,7 @@ const products = [
     "price": 1.24,
     "unit": "lb",
     "description": "Essential culinary onion, pungent and flavorful.",
-    "image": "🧅",
+    "image": "/assets/onion.png",
     "inStock": true,
     "rating": 4.6,
     "reviews": 106
@@ -270,7 +270,7 @@ const products = [
     "price": 1.88,
     "unit": "lb",
     "description": "Fresh white cauliflower head.",
-    "image": "🥦",
+    "image": "/assets/broccoli.png",
     "inStock": true,
     "rating": 4.7,
     "reviews": 95
@@ -282,7 +282,7 @@ const products = [
     "price": 1.47,
     "unit": "lb",
     "description": "Crisp green leafy cabbage.",
-    "image": "🥬",
+    "image": "/assets/spinach.png",
     "inStock": true,
     "rating": 4.4,
     "reviews": 211
@@ -294,7 +294,7 @@ const products = [
     "price": 1.66,
     "unit": "lb",
     "description": "Fresh green spinach leaves.",
-    "image": "🥬",
+    "image": "/assets/spinach.png",
     "inStock": true,
     "rating": 5,
     "reviews": 179
@@ -306,7 +306,7 @@ const products = [
     "price": 1.53,
     "unit": "lb",
     "description": "Slightly bitter aromatic leaves.",
-    "image": "🌿",
+    "image": "/assets/spinach.png",
     "inStock": true,
     "rating": 4.4,
     "reviews": 232
@@ -318,7 +318,7 @@ const products = [
     "price": 3.86,
     "unit": "lb",
     "description": "Fresh cilantro for garnish.",
-    "image": "🌿",
+    "image": "/assets/spinach.png",
     "inStock": true,
     "rating": 4.5,
     "reviews": 92
@@ -330,7 +330,7 @@ const products = [
     "price": 1.01,
     "unit": "lb",
     "description": "Spicy fresh green chilies.",
-    "image": "🌶️",
+    "image": "/assets/pepper.png",
     "inStock": true,
     "rating": 4.1,
     "reviews": 103
@@ -342,7 +342,7 @@ const products = [
     "price": 2.31,
     "unit": "lb",
     "description": "Sweet green peas in pod.",
-    "image": "🫛",
+    "image": "/assets/broccoli.png",
     "inStock": true,
     "rating": 4.3,
     "reviews": 72
@@ -354,7 +354,7 @@ const products = [
     "price": 3.92,
     "unit": "lb",
     "description": "Crunchy green bell peppers.",
-    "image": "🫑",
+    "image": "/assets/pepper.png",
     "inStock": true,
     "rating": 4.2,
     "reviews": 95
@@ -366,7 +366,7 @@ const products = [
     "price": 2.29,
     "unit": "lb",
     "description": "Light green mild gourd.",
-    "image": "🥒",
+    "image": "/assets/carrot.png",
     "inStock": true,
     "rating": 4.4,
     "reviews": 218
@@ -378,7 +378,7 @@ const products = [
     "price": 3.93,
     "unit": "lb",
     "description": "Ridged green vegetable.",
-    "image": "🥒",
+    "image": "/assets/carrot.png",
     "inStock": true,
     "rating": 4.5,
     "reviews": 138
@@ -390,7 +390,7 @@ const products = [
     "price": 3.52,
     "unit": "lb",
     "description": "Bitter but healthy gourd.",
-    "image": "🥒",
+    "image": "/assets/carrot.png",
     "inStock": true,
     "rating": 4.4,
     "reviews": 69
@@ -402,7 +402,7 @@ const products = [
     "price": 3.44,
     "unit": "lb",
     "description": "Tender green ladyfingers.",
-    "image": "🥒",
+    "image": "/assets/carrot.png",
     "inStock": true,
     "rating": 4.3,
     "reviews": 91
@@ -414,7 +414,7 @@ const products = [
     "price": 1.24,
     "unit": "lb",
     "description": "Sweet orange pumpkin.",
-    "image": "🎃",
+    "image": "/assets/onion.png",
     "inStock": true,
     "rating": 4.9,
     "reviews": 127
@@ -426,7 +426,7 @@ const products = [
     "price": 2.41,
     "unit": "lb",
     "description": "Long green moringa pods.",
-    "image": "🌿",
+    "image": "/assets/carrot.png",
     "inStock": true,
     "rating": 4.2,
     "reviews": 176
@@ -438,7 +438,7 @@ const products = [
     "price": 3.8,
     "unit": "lb",
     "description": "Crisp white radish.",
-    "image": "🥕",
+    "image": "/assets/carrot.png",
     "inStock": true,
     "rating": 4.2,
     "reviews": 115
@@ -450,7 +450,7 @@ const products = [
     "price": 2.99,
     "unit": "lb",
     "description": "Premium quality purple brinjal.",
-    "image": "🍆",
+    "image": "/assets/onion.png",
     "inStock": true,
     "rating": 4.7,
     "reviews": 142

@@ -282,7 +282,16 @@ tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
   align-items: center;
   gap: 10px;
 }
-.product-emoji { font-size: 24px; }
+.product-preview-admin {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
 .product-cell-name { font-weight: 500; }
 
 /* Status Badges */
