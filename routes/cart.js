@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
   try {
     const [items] = await pool.query(
       `SELECT c.id, c.product_id, c.quantity,
-              p.name, p.category, p.price, p.unit, p.image, p.in_stock
+              p.name, p.category, p.price, p.unit, p.image, p.stock
        FROM cart c
        JOIN products p ON c.product_id = p.id
        WHERE c.user_id = ?`,
@@ -28,7 +28,7 @@ router.get("/", async (req, res) => {
         price: parseFloat(item.price),
         unit: item.unit,
         image: item.image,
-        inStock: item.in_stock,
+        inStock: item.stock,
       },
     }));
 
@@ -59,10 +59,20 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ success: false, message: "productId is required." });
     }
 
-    // Check product exists
-    const [products] = await pool.query("SELECT id FROM products WHERE id = ?", [productId]);
+    // Check product exists and has enough stock
+    const [products] = await pool.query("SELECT id, stock, name FROM products WHERE id = ?", [productId]);
     if (products.length === 0) {
       return res.status(404).json({ success: false, message: "Product not found." });
+    }
+
+    const product = products[0];
+
+    // Check current quantity in cart
+    const [currentCart] = await pool.query("SELECT quantity FROM cart WHERE user_id = ? AND product_id = ?", [req.user.id, productId]);
+    const currentQty = currentCart.length > 0 ? currentCart[0].quantity : 0;
+    
+    if (currentQty + quantity > product.stock) {
+      return res.status(400).json({ success: false, message: `Only ${product.stock} units of ${product.name} are available.` });
     }
 
     // Upsert — add or increment quantity
@@ -109,6 +119,12 @@ router.put("/:productId", async (req, res) => {
         [req.user.id, productId]
       );
       return res.json({ success: true, message: "Item removed from cart" });
+    }
+
+    // Check stock
+    const [products] = await pool.query("SELECT stock, name FROM products WHERE id = ?", [productId]);
+    if (products.length > 0 && quantity > products[0].stock) {
+      return res.status(400).json({ success: false, message: `Only ${products[0].stock} units of ${products[0].name} are available.` });
     }
 
     await pool.query(

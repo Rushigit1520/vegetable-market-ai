@@ -89,7 +89,7 @@ async function loadDashboard() {
     const revenue = orders
       .filter((o) => o.status !== "cancelled")
       .reduce((sum, o) => sum + (o.total || 0), 0);
-    document.getElementById("stat-revenue").textContent = `$${revenue.toFixed(2)}`;
+    document.getElementById("stat-revenue").textContent = `₹${revenue.toLocaleString('en-IN')}`;
 
     // Recent orders (last 5)
     renderRecentOrders(orders.slice(0, 5));
@@ -122,7 +122,7 @@ function renderRecentOrders(orders) {
           <tr>
             <td><strong>${o.order_number}</strong></td>
             <td>${o.user_name || "N/A"}</td>
-            <td>$${o.total.toFixed(2)}</td>
+            <td>₹${parseFloat(o.total).toLocaleString('en-IN')}</td>
             <td><span class="badge badge-${o.status}">${o.status}</span></td>
             <td>${new Date(o.created_at).toLocaleDateString()}</td>
           </tr>
@@ -182,7 +182,7 @@ function renderProductsTable(products) {
               </div>
             </td>
             <td>${p.category}</td>
-            <td>$${parseFloat(p.price).toFixed(2)}</td>
+            <td>₹${parseFloat(p.price).toLocaleString('en-IN')}</td>
             <td>${p.unit}</td>
             <td><span class="badge ${p.stock > 0 ? "badge-delivered" : "badge-cancelled"}">${p.stock} units</span></td>
             <td>⭐ ${p.rating || 0}</td>
@@ -236,14 +236,57 @@ async function saveProduct(e) {
   e.preventDefault();
   const btn = document.getElementById("btn-save-product");
   btn.disabled = true;
+  btn.textContent = "Saving...";
 
   const editId = document.getElementById("prod-edit-id").value;
+  let imageVal = document.getElementById("prod-image").value.trim();
+  const productName = document.getElementById("prod-name").value;
+
+  // AI Auto-fill: If no image provided, generate a placeholder path based on product name
+  if (!imageVal && !editId) {
+    const slug = productName.toLowerCase().replace(/[^a-z0-9]+/g, '').substring(0, 20);
+    // Map common product keywords to existing asset images
+    const aiImageMap = {
+      'banana': '/assets/banana.png', 'apple': '/assets/apple.png',
+      'tomato': '/assets/tomato.png', 'carrot': '/assets/carrot.png',
+      'potato': '/assets/potato.png', 'onion': '/assets/onion.png',
+      'spinach': '/assets/spinach.png', 'broccoli': '/assets/broccoli.png',
+      'milk': '/assets/milk.png', 'eggs': '/assets/eggs.png',
+      'cheese': '/assets/cheese.png', 'bread': '/assets/bread.png',
+      'chicken': '/assets/chicken.png', 'salmon': '/assets/salmon.png',
+      'rice': '/assets/rice.png', 'yogurt': '/assets/yogurt.png',
+      'avocado': '/assets/avocado.png', 'strawberry': '/assets/strawberry.png',
+      'pepper': '/assets/pepper.png', 'croissant': '/assets/croissant.png',
+      'cabbage': '/assets/cabbage.png', 'cauliflower': '/assets/cauliflower.png',
+      'pumpkin': '/assets/pumpkin.png', 'okra': '/assets/okra.png',
+      'peas': '/assets/peas.png', 'coriander': '/assets/coriander.png',
+      'methi': '/assets/methi.png', 'drumstick': '/assets/drumstick.png',
+    };
+    // Find matching keyword
+    const matchedKey = Object.keys(aiImageMap).find(key => slug.includes(key));
+    if (matchedKey) {
+      imageVal = aiImageMap[matchedKey];
+      showToast("🤖", `AI auto-selected image for "${productName}"`);
+    } else {
+      // Default category-based fallback
+      const category = document.getElementById("prod-category").value.toLowerCase();
+      const categoryDefaults = {
+        'fruits': '/assets/apple.png', 'vegetables': '/assets/carrot.png',
+        'dairy': '/assets/milk.png', 'bakery': '/assets/bread.png',
+        'meat': '/assets/chicken.png', 'pantry': '/assets/rice.png',
+        'beverages': '/assets/sparklingwater.png',
+      };
+      imageVal = categoryDefaults[category] || '/assets/carrot.png';
+      showToast("🤖", `AI auto-assigned a category image for "${productName}"`);
+    }
+  }
+
   const data = {
-    name: document.getElementById("prod-name").value,
+    name: productName,
     category: document.getElementById("prod-category").value,
     price: parseFloat(document.getElementById("prod-price").value),
     unit: document.getElementById("prod-unit").value,
-    image: document.getElementById("prod-image").value || "🥬",
+    image: imageVal || "🥬",
     stock: parseInt(document.getElementById("prod-stock").value) || 0,
     description: document.getElementById("prod-description").value,
   };
@@ -273,6 +316,7 @@ async function saveProduct(e) {
     showToast("❌", "Network error.");
   } finally {
     btn.disabled = false;
+    btn.textContent = "Save Product";
   }
 }
 
@@ -344,7 +388,7 @@ function renderOrdersTable(orders) {
               <div style="font-size:11px;color:var(--text-muted)">${o.user_email || ""}</div>
             </td>
             <td>${(o.items || []).length} items</td>
-            <td>$${o.total.toFixed(2)}</td>
+            <td>₹${parseFloat(o.total).toLocaleString('en-IN')}</td>
             <td><span class="badge badge-${o.status}">${o.status}</span></td>
             <td>${new Date(o.created_at).toLocaleDateString()}</td>
             <td>
