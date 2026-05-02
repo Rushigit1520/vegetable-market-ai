@@ -1,239 +1,122 @@
 /* ===================================================
-   Vegetable Market AI — UX Effects (God Mode)
-   GSAP Animations, Loading Screen, Cursor Effects
+   Vegetable Market AI — Micro-Interactions & UX
    =================================================== */
 
-// -------- Loading Screen --------
-function initLoadingScreen() {
-  const loader = document.getElementById("loading-screen");
-  if (!loader) return;
-
-  const bar = document.getElementById("loading-bar-fill");
-  const text = document.getElementById("loading-text");
-  let progress = 0;
-
-  const messages = [
-    "Initializing AI Engine...",
-    "Loading Fresh Produce...",
-    "Preparing 3D Scene...",
-    "Optimizing Experience...",
-    "Almost Ready...",
-  ];
-
-  const interval = setInterval(() => {
-    progress += Math.random() * 15 + 5;
-    if (progress > 100) progress = 100;
-
-    if (bar) bar.style.width = progress + "%";
-    if (text) {
-      const idx = Math.min(Math.floor(progress / 20), messages.length - 1);
-      text.textContent = messages[idx];
-    }
-
-    if (progress >= 100) {
-      clearInterval(interval);
-      setTimeout(() => {
-        loader.classList.add("loaded");
-        setTimeout(() => loader.remove(), 600);
-      }, 400);
-    }
-  }, 200);
-}
-
-// -------- GSAP Scroll Animations --------
-function initScrollAnimations() {
-  if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  // Fade-in product cards on scroll
-  gsap.utils.toArray(".product-card").forEach((card, i) => {
-    gsap.from(card, {
-      opacity: 0,
-      y: 60,
-      scale: 0.95,
-      duration: 0.6,
-      delay: i * 0.05,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: card,
-        start: "top 90%",
-        toggleActions: "play none none none",
-      },
-    });
-  });
-
-  // Animate stat cards
-  gsap.utils.toArray(".stat-card").forEach((card, i) => {
-    gsap.from(card, {
-      opacity: 0,
-      x: -40,
-      duration: 0.5,
-      delay: i * 0.15,
-      ease: "power2.out",
-    });
-  });
-
-  // Animate trend cards
-  gsap.utils.toArray(".trend-card").forEach((card, i) => {
-    gsap.from(card, {
-      opacity: 0,
-      x: 40,
-      duration: 0.5,
-      delay: i * 0.15,
-      ease: "power2.out",
-    });
-  });
-
-  // Animate group titles
-  gsap.utils.toArray(".group-title").forEach((title) => {
-    gsap.from(title, {
-      opacity: 0,
-      y: 20,
-      duration: 0.4,
-      ease: "power2.out",
-      scrollTrigger: {
-        trigger: title,
-        start: "top 95%",
-      },
-    });
-  });
-}
-
-// Re-trigger scroll animations when products are re-rendered
-function refreshScrollAnimations() {
-  if (typeof ScrollTrigger !== "undefined") {
-    ScrollTrigger.refresh();
-  }
-  // Animate newly added product cards
-  setTimeout(() => {
-    if (typeof gsap === "undefined") return;
-    gsap.utils.toArray(".product-card").forEach((card, i) => {
-      gsap.fromTo(
-        card,
-        { opacity: 0, y: 40, scale: 0.96 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.5,
-          delay: i * 0.04,
-          ease: "power2.out",
-        }
-      );
-    });
-  }, 50);
-}
-
-// -------- Magnetic Buttons --------
-function initMagneticButtons() {
-  const buttons = document.querySelectorAll(".btn-add-to-cart, .cat-chip, .action-btn, .nav-item");
-
-  buttons.forEach((btn) => {
-    btn.addEventListener("mousemove", (e) => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-      btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
-    });
-
-    btn.addEventListener("mouseleave", () => {
-      btn.style.transform = "";
-    });
-  });
-}
-
-// -------- Cursor Glow Trail --------
-function initCursorGlow() {
-  // Skip on touch devices
-  if ("ontouchstart" in window) return;
-
-  const glow = document.createElement("div");
-  glow.id = "cursor-glow";
-  document.body.appendChild(glow);
-
-  let mouseX = 0, mouseY = 0;
-  let glowX = 0, glowY = 0;
-
-  document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  function animateGlow() {
-    glowX += (mouseX - glowX) * 0.08;
-    glowY += (mouseY - glowY) * 0.08;
-    glow.style.left = glowX + "px";
-    glow.style.top = glowY + "px";
-    requestAnimationFrame(animateGlow);
-  }
-  animateGlow();
-}
-
-// -------- Smooth Page Transitions --------
-function smoothTransition(fromPage, toPage) {
-  if (typeof gsap === "undefined") return false;
-
-  if (fromPage && fromPage !== toPage) {
-    gsap.to(fromPage, {
-      opacity: 0,
-      y: -20,
-      duration: 0.2,
-      ease: "power2.in",
-      onComplete: () => {
-        fromPage.classList.remove("active");
-        fromPage.style.opacity = "";
-        fromPage.style.transform = "";
-        toPage.classList.add("active");
-        gsap.fromTo(
-          toPage,
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }
-        );
-      },
-    });
-    return true;
-  }
-  return false;
-}
-
-// -------- Counter Animation --------
-function animateCounters() {
-  document.querySelectorAll(".stat-value").forEach((el) => {
-    const text = el.textContent;
-    const match = text.match(/([\d,.]+)/);
-    if (!match) return;
-
-    const target = parseFloat(match[1].replace(/,/g, ""));
-    const suffix = text.replace(match[1], "");
-    const hasDecimal = match[1].includes(".");
-    let current = 0;
-
-    const step = () => {
-      current += target / 40;
-      if (current >= target) {
-        el.textContent = text; // restore original
-        return;
-      }
-      const val = hasDecimal ? current.toFixed(1) : Math.floor(current).toLocaleString();
-      el.textContent = val + suffix;
-      requestAnimationFrame(step);
-    };
-    step();
-  });
-}
-
-// -------- Export init function --------
 window.initUXEffects = function () {
-  initLoadingScreen();
-  initCursorGlow();
-  // Delay animations to let DOM settle
-  setTimeout(() => {
-    initScrollAnimations();
-    initMagneticButtons();
-    animateCounters();
-  }, 800);
-};
+  // 1. Custom Cursor Glow
+  const cursor = document.getElementById("cursor-glow");
+  if (cursor) {
+    document.addEventListener("mousemove", (e) => {
+      // Use requestAnimationFrame for smooth performance
+      requestAnimationFrame(() => {
+        cursor.style.left = e.clientX + "px";
+        cursor.style.top = e.clientY + "px";
+      });
+    });
 
-window.refreshScrollAnimations = refreshScrollAnimations;
-window.smoothTransition = smoothTransition;
+    // Fade out cursor when leaving window
+    document.addEventListener("mouseleave", () => {
+      cursor.style.opacity = "0";
+    });
+    document.addEventListener("mouseenter", () => {
+      cursor.style.opacity = "1";
+    });
+  }
+
+  // 2. Loading Screen Sequence
+  const loader = document.getElementById("loading-screen");
+  const progress = document.getElementById("loading-progress");
+  if (loader && progress) {
+    let p = 0;
+    const interval = setInterval(() => {
+      // Random jumps for realistic loading feel
+      p += Math.random() * 15;
+      if (p >= 100) {
+        p = 100;
+        clearInterval(interval);
+        setTimeout(() => {
+          loader.classList.add("loaded");
+          // Trigger entry animations after loader is gone
+          if (window.gsap) triggerEntryAnimations();
+        }, 400);
+      }
+      progress.style.width = p + "%";
+    }, 80);
+  } else if (window.gsap) {
+    triggerEntryAnimations();
+  }
+
+  // 3. Staggered Entry Animations using GSAP
+  function triggerEntryAnimations() {
+    gsap.from(".hero-slide h2", {
+      y: 40,
+      opacity: 0,
+      duration: 1,
+      ease: "power3.out",
+    });
+    
+    gsap.from(".hero-slide p", {
+      y: 20,
+      opacity: 0,
+      duration: 1,
+      delay: 0.2,
+      ease: "power3.out",
+    });
+
+    gsap.from(".btn-primary", {
+      y: 20,
+      opacity: 0,
+      duration: 1,
+      delay: 0.4,
+      ease: "power3.out",
+    });
+
+    gsap.from(".hero-visual .floating-img", {
+      x: 50,
+      opacity: 0,
+      duration: 1.2,
+      delay: 0.3,
+      ease: "elastic.out(1, 0.5)",
+    });
+  }
+
+  // 4. Hero Carousel Auto-Rotation
+  const track = document.getElementById("hero-carousel-track");
+  const dotsContainer = document.getElementById("carousel-dots");
+  if (track && dotsContainer) {
+    const slides = document.querySelectorAll(".hero-slide");
+    if (slides.length > 1) {
+      // Create dots
+      slides.forEach((_, i) => {
+        const dot = document.createElement("div");
+        dot.className = `dot ${i === 0 ? "active" : ""}`;
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+      });
+
+      let currentSlide = 0;
+      let slideInterval;
+
+      function goToSlide(index) {
+        currentSlide = index;
+        track.style.transform = `translateX(-${index * 100}%)`;
+        document.querySelectorAll(".dot").forEach((d, i) => {
+          d.classList.toggle("active", i === index);
+        });
+        resetInterval();
+      }
+
+      function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        goToSlide(currentSlide);
+      }
+
+      function resetInterval() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, 5000);
+      }
+
+      resetInterval();
+    }
+  }
+};

@@ -7,6 +7,7 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const logger = require("./utils/logger");
+const pool = require("./config/db");
 
 // Ensure logs directory exists
 const fs = require("fs");
@@ -29,6 +30,8 @@ app.use(
     crossOriginEmbedderPolicy: false,
   })
 );
+
+app.set('trust proxy', 1);
 
 // Rate limiting — 100 req/min per IP
 const apiLimiter = rateLimit({
@@ -64,6 +67,9 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/wishlist", require("./routes/wishlist.js"));
+app.use("/api/coupons", require("./routes/coupons.js"));
+app.use("/api/uploads", require("./routes/uploads.js"));
 
 // Health check
 app.get("/api/health", (_req, res) => {
@@ -82,10 +88,25 @@ app.use((err, _req, res, _next) => {
 });
 
 // ---------- Start ----------
-app.listen(PORT, () => {
-  logger.info(`🛒 Vegetable Market AI is running on port ${PORT}`);
-  console.log(`\n  🛒  Vegetable Market AI is running!\n`);
-  console.log(`  ➜  Local:   http://localhost:${PORT}`);
-  console.log(`  ➜  API:     http://localhost:${PORT}/api/products`);
-  console.log(`  ➜  Admin:   http://localhost:${PORT}/admin.html\n`);
-});
+async function startServer() {
+  try {
+    // Check DB connection before starting server
+    const connection = await pool.getConnection();
+    logger.info("✅ Database connected successfully");
+    connection.release();
+
+    app.listen(PORT, () => {
+      logger.info(`🛒 Vegetable Market AI is running on port ${PORT}`);
+      console.log(`\n  🛒  Vegetable Market AI is running!\n`);
+      console.log(`  ➜  Local:   http://localhost:${PORT}`);
+      console.log(`  ➜  API:     http://localhost:${PORT}/api/products`);
+      console.log(`  ➜  Admin:   http://localhost:${PORT}/admin.html\n`);
+    });
+  } catch (err) {
+    logger.error("❌ Failed to connect to database on startup:", err);
+    console.error("\n❌ Database Connection Failed. Make sure MySQL is running and credentials are correct in .env\n");
+    process.exit(1);
+  }
+}
+
+startServer();

@@ -1,182 +1,149 @@
 /* ===================================================
-   Vegetable Market AI — 3D Background Scene (God Mode)
-   Cinematic particles + bloom-like glow + parallax camera
+   Vegetable Market AI — Enhanced 3D Background
    =================================================== */
 
-let scene, camera, renderer;
-let particles = [];
-let mouseX = 0, mouseY = 0;
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof THREE === "undefined") return;
 
-function initThreeScene() {
-  const canvas = document.getElementById('bg-canvas');
-  if (!canvas || typeof THREE === 'undefined') return;
+  const canvas = document.getElementById("bg-canvas");
+  if (!canvas) return;
 
-  // Scene
-  scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0a0f16, 0.015);
+  // Scene Setup
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x0a0f16, 0.0015);
 
-  // Camera
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
   camera.position.z = 30;
-  camera.position.y = 5;
 
-  // Renderer
-  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  const renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    alpha: true,
+    antialias: true,
+    powerPreference: "high-performance"
+  });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
 
-  // Lighting — multi-color for cinematic feel
-  const ambient = new THREE.AmbientLight(0xffffff, 0.3);
-  scene.add(ambient);
+  // --- Particles Layer 1 (Stars/Dust) ---
+  const particlesGeometry = new THREE.BufferGeometry();
+  const particlesCount = window.innerWidth < 768 ? 1000 : 2500;
+  const posArray = new Float32Array(particlesCount * 3);
+  const colorsArray = new Float32Array(particlesCount * 3);
 
-  const greenLight = new THREE.PointLight(0x00ff88, 3, 60);
-  greenLight.position.set(-10, 10, 15);
-  scene.add(greenLight);
+  const color1 = new THREE.Color(0x00ff88); // Green
+  const color2 = new THREE.Color(0xbf00ff); // Purple
+  const color3 = new THREE.Color(0x4ade80); // Light Green
 
-  const purpleLight = new THREE.PointLight(0xbf00ff, 2, 50);
-  purpleLight.position.set(15, -5, 10);
-  scene.add(purpleLight);
+  for (let i = 0; i < particlesCount * 3; i += 3) {
+    posArray[i] = (Math.random() - 0.5) * 100;     // x
+    posArray[i + 1] = (Math.random() - 0.5) * 100; // y
+    posArray[i + 2] = (Math.random() - 0.5) * 80;  // z
 
-  const blueLight = new THREE.PointLight(0x3b82f6, 1.5, 40);
-  blueLight.position.set(0, 15, -10);
-  scene.add(blueLight);
+    // Mixed colors
+    const mixedColor = [color1, color2, color3][Math.floor(Math.random() * 3)];
+    colorsArray[i] = mixedColor.r;
+    colorsArray[i + 1] = mixedColor.g;
+    colorsArray[i + 2] = mixedColor.b;
+  }
 
-  // Create particles
-  createGlowParticles();
-  createFloatingOrbs();
+  particlesGeometry.setAttribute("position", new THREE.BufferAttribute(posArray, 3));
+  particlesGeometry.setAttribute("color", new THREE.BufferAttribute(colorsArray, 3));
 
-  // Events
-  window.addEventListener('resize', onResize);
-  document.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-    mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+  // Custom circular particle material
+  const particleMaterial = new THREE.PointsMaterial({
+    size: 0.15,
+    vertexColors: true,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    opacity: 0.8,
   });
+
+  const particlesMesh = new THREE.Points(particlesGeometry, particleMaterial);
+  scene.add(particlesMesh);
+
+  // --- Particles Layer 2 (Larger blurred orbs) ---
+  const orbGeo = new THREE.BufferGeometry();
+  const orbCount = 50;
+  const orbPos = new Float32Array(orbCount * 3);
+  for (let i = 0; i < orbCount * 3; i++) {
+    orbPos[i] = (Math.random() - 0.5) * 60;
+  }
+  orbGeo.setAttribute("position", new THREE.BufferAttribute(orbPos, 3));
+  
+  const orbMat = new THREE.PointsMaterial({
+    size: 1.5,
+    color: 0x00ff88,
+    transparent: true,
+    opacity: 0.15,
+    blending: THREE.AdditiveBlending,
+  });
+  const orbMesh = new THREE.Points(orbGeo, orbMat);
+  scene.add(orbMesh);
+
+  // --- Mouse Interactivity ---
+  let mouseX = 0;
+  let mouseY = 0;
+  let targetX = 0;
+  let targetY = 0;
+
+  const windowHalfX = window.innerWidth / 2;
+  const windowHalfY = window.innerHeight / 2;
+
+  document.addEventListener("mousemove", (event) => {
+    mouseX = event.clientX - windowHalfX;
+    mouseY = event.clientY - windowHalfY;
+  });
+
+  // --- Scroll Interactivity ---
+  let scrollY = 0;
+  window.addEventListener("scroll", () => {
+    scrollY = window.scrollY;
+  });
+
+  // --- Animation Loop ---
+  const clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const elapsedTime = clock.getElapsedTime();
+
+    // Smooth mouse follow
+    targetX = mouseX * 0.001;
+    targetY = mouseY * 0.001;
+
+    // Rotate main particles
+    particlesMesh.rotation.y += 0.0005;
+    particlesMesh.rotation.x += 0.0002;
+
+    // Rotate orbs in opposite direction
+    orbMesh.rotation.y -= 0.0003;
+    orbMesh.rotation.z = elapsedTime * 0.05;
+
+    // Mouse parallax effect
+    particlesMesh.position.x += (targetX * 5 - particlesMesh.position.x) * 0.05;
+    particlesMesh.position.y += (-targetY * 5 - particlesMesh.position.y) * 0.05;
+    
+    // Scroll parallax effect
+    particlesMesh.position.z = scrollY * 0.01;
+
+    // Subtle pulsing of orbs
+    orbMat.size = 1.5 + Math.sin(elapsedTime * 2) * 0.5;
+
+    renderer.render(scene, camera);
+  }
 
   animate();
-}
 
-function createGlowParticles() {
-  // Luminous dust particles
-  const count = 150;
-  const geo = new THREE.BufferGeometry();
-  const positions = new Float32Array(count * 3);
-  const sizes = new Float32Array(count);
-
-  for (let i = 0; i < count; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 80;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 60;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
-    sizes[i] = Math.random() * 3 + 0.5;
-  }
-
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-  const mat = new THREE.PointsMaterial({
-    color: 0x00ff88,
-    size: 0.3,
-    transparent: true,
-    opacity: 0.6,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
+  // --- Resize Handler ---
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
   });
-
-  const points = new THREE.Points(geo, mat);
-  scene.add(points);
-  particles.push({ mesh: points, type: 'dust' });
-
-  // Second layer — purple dust
-  const mat2 = new THREE.PointsMaterial({
-    color: 0xbf00ff,
-    size: 0.2,
-    transparent: true,
-    opacity: 0.4,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-
-  const positions2 = new Float32Array(80 * 3);
-  for (let i = 0; i < 80; i++) {
-    positions2[i * 3] = (Math.random() - 0.5) * 70;
-    positions2[i * 3 + 1] = (Math.random() - 0.5) * 50;
-    positions2[i * 3 + 2] = (Math.random() - 0.5) * 35;
-  }
-  const geo2 = new THREE.BufferGeometry();
-  geo2.setAttribute('position', new THREE.BufferAttribute(positions2, 3));
-  const points2 = new THREE.Points(geo2, mat2);
-  scene.add(points2);
-  particles.push({ mesh: points2, type: 'dust' });
-}
-
-function createFloatingOrbs() {
-  // Glowing translucent orbs
-  const orbColors = [0x00ff88, 0xbf00ff, 0x3b82f6, 0xffd700, 0x00ff88];
-
-  for (let i = 0; i < 12; i++) {
-    const radius = 0.3 + Math.random() * 0.8;
-    const geo = new THREE.SphereGeometry(radius, 16, 16);
-    const mat = new THREE.MeshPhongMaterial({
-      color: orbColors[i % orbColors.length],
-      transparent: true,
-      opacity: 0.15 + Math.random() * 0.1,
-      emissive: orbColors[i % orbColors.length],
-      emissiveIntensity: 0.3,
-      shininess: 100,
-    });
-
-    const orb = new THREE.Mesh(geo, mat);
-    orb.position.set(
-      (Math.random() - 0.5) * 50,
-      (Math.random() - 0.5) * 30,
-      (Math.random() - 0.5) * 20
-    );
-
-    orb.userData = {
-      baseY: orb.position.y,
-      baseX: orb.position.x,
-      speed: 0.3 + Math.random() * 0.5,
-      phase: Math.random() * Math.PI * 2,
-    };
-
-    scene.add(orb);
-    particles.push({ mesh: orb, type: 'orb' });
-  }
-}
-
-function onResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-const clock = new THREE.Clock();
-
-function animate() {
-  requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
-
-  // Animate particles
-  particles.forEach((p) => {
-    if (p.type === 'dust') {
-      p.mesh.rotation.y = t * 0.02;
-      p.mesh.rotation.x = t * 0.01;
-    } else if (p.type === 'orb') {
-      const d = p.mesh.userData;
-      p.mesh.position.y = d.baseY + Math.sin(t * d.speed + d.phase) * 2;
-      p.mesh.position.x = d.baseX + Math.cos(t * d.speed * 0.7 + d.phase) * 1.5;
-      p.mesh.rotation.y = t * 0.5;
-    }
-  });
-
-  // Parallax camera
-  camera.position.x += (mouseX * 8 - camera.position.x) * 0.02;
-  camera.position.y += (-mouseY * 6 + 5 - camera.position.y) * 0.02;
-  camera.lookAt(0, 0, 0);
-
-  renderer.render(scene, camera);
-}
-
-// Init on load
-window.addEventListener('DOMContentLoaded', initThreeScene);
+});

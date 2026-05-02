@@ -1,560 +1,480 @@
 /* ===================================================
-   Admin Dashboard — Logic
+   Vegetable Market AI Premium — Admin Logic
    =================================================== */
 
 const API = "";
-let adminToken = "";
-let allProducts = [];
-let allOrders = [];
-let allEmployees = [];
+let authToken = localStorage.getItem("token") || "";
+let adminUser = JSON.parse(localStorage.getItem("user") || "null");
 
-// -------- Auth Check --------
-(function checkAdminAuth() {
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-
-  if (!token || !user || (user.role !== "admin" && user.role !== "employee")) {
+document.addEventListener("DOMContentLoaded", () => {
+  if (!authToken || !adminUser || (adminUser.role !== "admin" && adminUser.role !== "employee")) {
     window.location.href = "/login.html";
     return;
   }
 
-  adminToken = token;
-  document.getElementById("admin-name").textContent = user.name;
-  document.querySelector(".admin-avatar").textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById("admin-name").textContent = adminUser.name;
+  document.querySelector(".admin-role").textContent = adminUser.role.toUpperCase();
+  document.querySelector(".admin-avatar").textContent = adminUser.name.charAt(0).toUpperCase();
 
-  const roleText = document.querySelector(".admin-role");
-  if (roleText) roleText.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
-
-  if (user.role === "admin") {
+  if (adminUser.role === "admin") {
     document.getElementById("nav-employees").style.display = "flex";
   }
 
-  // Load data
   loadDashboard();
-})();
+});
 
-// -------- API Helper --------
-async function adminApi(path, options = {}) {
-  const res = await fetch(`${API}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${adminToken}`,
-    },
-    ...options,
-  });
+// -------- Core --------
+async function api(path, options = {}) {
+  const headers = {};
+  if (!(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+
+  const res = await fetch(`${API}${path}`, { headers, ...options });
+  if (res.status === 401) adminLogout();
   return res.json();
 }
 
-// -------- Tab Switching --------
-function switchAdminTab(tab, el) {
-  document.querySelectorAll(".admin-tab").forEach((t) => t.classList.remove("active"));
-  document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
-
-  document.getElementById(`tab-${tab}`).classList.add("active");
-  if (el) el.classList.add("active");
-
-  // Load data for tab
-  if (tab === "products") loadProducts();
-  if (tab === "orders") loadOrders();
-  if (tab === "dashboard") loadDashboard();
-  if (tab === "employees") loadEmployees();
-
-  // Close mobile sidebar
-  document.getElementById("sidebar").classList.remove("open");
-}
-
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("open");
-}
-
-// -------- Dashboard --------
-async function loadDashboard() {
-  try {
-    const [prodRes, orderRes] = await Promise.all([
-      adminApi("/api/products"),
-      adminApi("/api/orders/admin/all"),
-    ]);
-
-    const products = prodRes.data || [];
-    const orders = orderRes.data || [];
-
-    document.getElementById("stat-products").textContent = products.length;
-    document.getElementById("stat-orders").textContent = orders.length;
-
-    // Unique customers
-    const uniqueCustomers = new Set(orders.map((o) => o.user_id));
-    document.getElementById("stat-customers").textContent = uniqueCustomers.size;
-
-    // Revenue
-    const revenue = orders
-      .filter((o) => o.status !== "cancelled")
-      .reduce((sum, o) => sum + (o.total || 0), 0);
-    document.getElementById("stat-revenue").textContent = `₹${revenue.toLocaleString('en-IN')}`;
-
-    // Recent orders (last 5)
-    renderRecentOrders(orders.slice(0, 5));
-  } catch (err) {
-    console.error("Failed to load dashboard:", err);
-  }
-}
-
-function renderRecentOrders(orders) {
-  const container = document.getElementById("recent-orders-table");
-  if (!orders.length) {
-    container.innerHTML = `<p class="empty-state">No orders yet</p>`;
-    return;
-  }
-  container.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Order</th>
-          <th>Customer</th>
-          <th>Total</th>
-          <th>Status</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${orders
-          .map(
-            (o) => `
-          <tr>
-            <td><strong>${o.order_number}</strong></td>
-            <td>${o.user_name || "N/A"}</td>
-            <td>₹${parseFloat(o.total).toLocaleString('en-IN')}</td>
-            <td><span class="badge badge-${o.status}">${o.status}</span></td>
-            <td>${new Date(o.created_at).toLocaleDateString()}</td>
-          </tr>
-        `
-          )
-          .join("")}
-      </tbody>
-    </table>
-  `;
-}
-
-// -------- Products --------
-async function loadProducts() {
-  try {
-    const res = await adminApi("/api/products");
-    allProducts = res.data || [];
-    renderProductsTable(allProducts);
-  } catch (err) {
-    console.error("Failed to load products:", err);
-  }
-}
-
-function renderProductsTable(products) {
-  const container = document.getElementById("products-table");
-  if (!products.length) {
-    container.innerHTML = `<p class="empty-state">No products found</p>`;
-    return;
-  }
-  container.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Product</th>
-          <th>Category</th>
-          <th>Price</th>
-          <th>Unit</th>
-          <th>Stock</th>
-          <th>Rating</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${products
-          .map(
-            (p) => `
-          <tr>
-            <td>
-              <div class="product-cell">
-                <div class="product-preview-admin">
-                  ${
-                    p.image && p.image.startsWith("/")
-                      ? `<img src="${p.image}" alt="${p.name}" style="width: 28px; height: 28px; object-fit: contain; mix-blend-mode: screen; filter: drop-shadow(0 0 5px rgba(255,255,255,0.2))">`
-                      : p.image
-                  }
-                </div>
-                <span class="product-cell-name">${p.name}</span>
-              </div>
-            </td>
-            <td>${p.category}</td>
-            <td>₹${parseFloat(p.price).toLocaleString('en-IN')}</td>
-            <td>${p.unit}</td>
-            <td><span class="badge ${p.stock > 0 ? "badge-delivered" : "badge-cancelled"}">${p.stock} units</span></td>
-            <td>⭐ ${p.rating || 0}</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-sm btn-edit" onclick="editProduct(${p.id})">Edit</button>
-                <button class="btn-sm btn-delete" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">Delete</button>
-              </div>
-            </td>
-          </tr>
-        `
-          )
-          .join("")}
-      </tbody>
-    </table>
-  `;
-}
-
-// -------- Product Modal --------
-function openProductModal(product = null) {
-  const modal = document.getElementById("product-modal");
-  const title = document.getElementById("modal-title");
-  const form = document.getElementById("product-form");
-
-  form.reset();
-  document.getElementById("prod-edit-id").value = "";
-
-  if (product) {
-    title.textContent = "Edit Product";
-    document.getElementById("prod-edit-id").value = product.id;
-    document.getElementById("prod-name").value = product.name;
-    document.getElementById("prod-category").value = product.category;
-    document.getElementById("prod-price").value = product.price;
-    document.getElementById("prod-unit").value = product.unit;
-    document.getElementById("prod-image").value = product.image || "";
-    document.getElementById("prod-stock").value = product.stock || 0;
-    document.getElementById("prod-description").value = product.description || "";
-  } else {
-    title.textContent = "Add Product";
-  }
-
-  modal.classList.add("open");
-}
-
-function closeProductModal(event) {
-  if (event && event.target !== event.currentTarget) return;
-  document.getElementById("product-modal").classList.remove("open");
-}
-
-async function saveProduct(e) {
-  e.preventDefault();
-  const btn = document.getElementById("btn-save-product");
-  btn.disabled = true;
-  btn.textContent = "Saving...";
-
-  const editId = document.getElementById("prod-edit-id").value;
-  let imageVal = document.getElementById("prod-image").value.trim();
-  const productName = document.getElementById("prod-name").value;
-
-  // AI Auto-fill: If no image provided, generate a placeholder path based on product name
-  if (!imageVal && !editId) {
-    const slug = productName.toLowerCase().replace(/[^a-z0-9]+/g, '').substring(0, 20);
-    // Map common product keywords to existing asset images
-    const aiImageMap = {
-      'banana': '/assets/banana.png', 'apple': '/assets/apple.png',
-      'tomato': '/assets/tomato.png', 'carrot': '/assets/carrot.png',
-      'potato': '/assets/potato.png', 'onion': '/assets/onion.png',
-      'spinach': '/assets/spinach.png', 'broccoli': '/assets/broccoli.png',
-      'milk': '/assets/milk.png', 'eggs': '/assets/eggs.png',
-      'cheese': '/assets/cheese.png', 'bread': '/assets/bread.png',
-      'chicken': '/assets/chicken.png', 'salmon': '/assets/salmon.png',
-      'rice': '/assets/rice.png', 'yogurt': '/assets/yogurt.png',
-      'avocado': '/assets/avocado.png', 'strawberry': '/assets/strawberry.png',
-      'pepper': '/assets/pepper.png', 'croissant': '/assets/croissant.png',
-      'cabbage': '/assets/cabbage.png', 'cauliflower': '/assets/cauliflower.png',
-      'pumpkin': '/assets/pumpkin.png', 'okra': '/assets/okra.png',
-      'peas': '/assets/peas.png', 'coriander': '/assets/coriander.png',
-      'methi': '/assets/methi.png', 'drumstick': '/assets/drumstick.png',
-    };
-    // Find matching keyword
-    const matchedKey = Object.keys(aiImageMap).find(key => slug.includes(key));
-    if (matchedKey) {
-      imageVal = aiImageMap[matchedKey];
-      showToast("🤖", `AI auto-selected image for "${productName}"`);
-    } else {
-      // Default category-based fallback
-      const category = document.getElementById("prod-category").value.toLowerCase();
-      const categoryDefaults = {
-        'fruits': '/assets/apple.png', 'vegetables': '/assets/carrot.png',
-        'dairy': '/assets/milk.png', 'bakery': '/assets/bread.png',
-        'meat': '/assets/chicken.png', 'pantry': '/assets/rice.png',
-        'beverages': '/assets/sparklingwater.png',
-      };
-      imageVal = categoryDefaults[category] || '/assets/carrot.png';
-      showToast("🤖", `AI auto-assigned a category image for "${productName}"`);
-    }
-  }
-
-  const data = {
-    name: productName,
-    category: document.getElementById("prod-category").value,
-    price: parseFloat(document.getElementById("prod-price").value),
-    unit: document.getElementById("prod-unit").value,
-    image: imageVal || "🥬",
-    stock: parseInt(document.getElementById("prod-stock").value) || 0,
-    description: document.getElementById("prod-description").value,
-  };
-
-  try {
-    let res;
-    if (editId) {
-      res = await adminApi(`/api/products/${editId}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      });
-    } else {
-      res = await adminApi("/api/products", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-    }
-
-    if (res.success) {
-      showToast("✅", editId ? "Product updated!" : "Product added!");
-      closeProductModal();
-      loadProducts();
-    } else {
-      showToast("❌", res.message || "Failed to save product.");
-    }
-  } catch (err) {
-    showToast("❌", "Network error.");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Save Product";
-  }
-}
-
-function editProduct(id) {
-  const product = allProducts.find((p) => p.id === id);
-  if (product) openProductModal(product);
-}
-
-async function deleteProduct(id, name) {
-  if (!confirm(`Delete "${name}"? This action cannot be undone.`)) return;
-
-  try {
-    const res = await adminApi(`/api/products/${id}`, { method: "DELETE" });
-    if (res.success) {
-      showToast("🗑️", "Product deleted!");
-      loadProducts();
-    } else {
-      showToast("❌", res.message || "Failed to delete.");
-    }
-  } catch (err) {
-    showToast("❌", "Network error.");
-  }
-}
-
-// -------- Orders --------
-async function loadOrders() {
-  try {
-    const res = await adminApi("/api/orders/admin/all");
-    allOrders = res.data || [];
-    renderOrdersTable(allOrders);
-  } catch (err) {
-    console.error("Failed to load orders:", err);
-  }
-}
-
-function filterOrders() {
-  const status = document.getElementById("order-status-filter").value;
-  const filtered = status === "all" ? allOrders : allOrders.filter((o) => o.status === status);
-  renderOrdersTable(filtered);
-}
-
-function renderOrdersTable(orders) {
-  const container = document.getElementById("orders-table");
-  if (!orders.length) {
-    container.innerHTML = `<p class="empty-state">No orders found</p>`;
-    return;
-  }
-  container.innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Order #</th>
-          <th>Customer</th>
-          <th>Items</th>
-          <th>Total</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${orders
-          .map(
-            (o) => `
-          <tr>
-            <td><strong>${o.order_number}</strong></td>
-            <td>
-              <div>${o.user_name || "N/A"}</div>
-              <div style="font-size:11px;color:var(--text-muted)">${o.user_email || ""}</div>
-            </td>
-            <td>${(o.items || []).length} items</td>
-            <td>₹${parseFloat(o.total).toLocaleString('en-IN')}</td>
-            <td><span class="badge badge-${o.status}">${o.status}</span></td>
-            <td>${new Date(o.created_at).toLocaleDateString()}</td>
-            <td>
-              <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)" id="status-${o.id}">
-                <option value="pending" ${o.status === "pending" ? "selected" : ""}>Pending</option>
-                <option value="confirmed" ${o.status === "confirmed" ? "selected" : ""}>Confirmed</option>
-                <option value="delivered" ${o.status === "delivered" ? "selected" : ""}>Delivered</option>
-                <option value="cancelled" ${o.status === "cancelled" ? "selected" : ""}>Cancelled</option>
-              </select>
-            </td>
-          </tr>
-        `
-          )
-          .join("")}
-      </tbody>
-    </table>
-  `;
-}
-
-async function updateOrderStatus(orderId, status) {
-  try {
-    const res = await adminApi(`/api/orders/admin/${orderId}/status`, {
-      method: "PUT",
-      body: JSON.stringify({ status }),
-    });
-    if (res.success) {
-      showToast("✅", `Order status updated to ${status}`);
-      loadOrders();
-    } else {
-      showToast("❌", res.message || "Failed to update.");
-    }
-  } catch (err) {
-    showToast("❌", "Network error.");
-  }
-}
-
-// -------- Logout --------
 function adminLogout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   window.location.href = "/login.html";
 }
 
-// -------- Toast --------
-function showToast(icon, message) {
+function switchAdminTab(tabName, el) {
+  document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+  if (el) el.classList.add("active");
+  document.querySelectorAll(".admin-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(`tab-${tabName}`).classList.add("active");
+
+  if (window.innerWidth <= 1024) toggleSidebar();
+
+  if (tabName === "dashboard") loadDashboard();
+  if (tabName === "products") loadProducts();
+  if (tabName === "orders") loadOrders();
+  if (tabName === "coupons") loadCoupons();
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("open");
+}
+
+function formatPrice(price) {
+  return "₹" + parseFloat(price).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+}
+
+function showToast(icon, msg) {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
   toast.className = "toast";
-  toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+  toast.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
 
-// -------- Employees --------
-async function loadEmployees() {
+// -------- Dashboard --------
+async function loadDashboard() {
   try {
-    const res = await adminApi("/api/auth/employees");
-    allEmployees = res.data || [];
-    renderEmployeesTable(allEmployees);
-  } catch (err) {
-    console.error("Failed to load employees:", err);
+    const productsRes = await api("/api/products");
+    const ordersRes = await api("/api/orders/admin/all");
+
+    if (productsRes.success) {
+      document.getElementById("stat-products").textContent = productsRes.data.length;
+    }
+
+    if (ordersRes.success) {
+      const orders = ordersRes.data;
+      document.getElementById("stat-orders").textContent = orders.length;
+      
+      const revenue = orders.filter(o => o.status === "delivered").reduce((sum, o) => sum + parseFloat(o.total), 0);
+      document.getElementById("stat-revenue").textContent = formatPrice(revenue);
+      
+      // Distinct customers count estimation from orders
+      const users = new Set(orders.map(o => o.user_id));
+      document.getElementById("stat-customers").textContent = users.size;
+
+      renderRecentOrders(orders.slice(0, 5));
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 
-function renderEmployeesTable(employees) {
-  const container = document.getElementById("employees-table");
-  if (!employees.length) {
-    container.innerHTML = `<p class="empty-state">No employees found.</p>`;
+function renderRecentOrders(orders) {
+  const container = document.getElementById("recent-orders-table");
+  if (orders.length === 0) {
+    container.innerHTML = "<p class='empty-state'>No recent orders</p>";
     return;
   }
+
   container.innerHTML = `
     <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email Address</th>
-          <th>Role</th>
-          <th>Hired Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Order ID</th><th>Date</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
       <tbody>
-        ${employees
-          .map(
-            (e) => `
+        ${orders.map(o => `
           <tr>
-            <td>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 14px;">${e.name.charAt(0).toUpperCase()}</div>
-                <strong>${e.name}</strong>
-              </div>
-            </td>
-            <td>${e.email}</td>
-            <td><span class="badge badge-success">${e.role}</span></td>
-            <td>${new Date(e.created_at).toLocaleDateString()}</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-sm btn-delete" onclick="terminateEmployee(${e.id}, '${e.name.replace(/'/g, "\\'")}')">Terminate</button>
-              </div>
-            </td>
+            <td><strong>#${o.order_number}</strong></td>
+            <td>${new Date(o.created_at).toLocaleDateString()}</td>
+            <td>User #${o.user_id}</td>
+            <td>${formatPrice(o.total)}</td>
+            <td><span class="status-badge status-${o.status}">${o.status}</span></td>
           </tr>
-        `
-          )
-          .join("")}
+        `).join("")}
       </tbody>
     </table>
   `;
 }
 
-async function terminateEmployee(id, name) {
-  if (!confirm(`Are you sure you want to terminate "${name}"? This will revoke their access.`)) return;
+// -------- Products --------
+let editingProductId = null;
 
+async function loadProducts() {
   try {
-    const res = await adminApi(`/api/auth/employee/${id}`, { method: "DELETE" });
+    const res = await api("/api/products");
     if (res.success) {
-      showToast("🗑️", "Employee terminated.");
-      loadEmployees();
-    } else {
-      showToast("❌", res.message || "Failed to terminate employee.");
+      const container = document.getElementById("products-table");
+      if (res.data.length === 0) {
+        container.innerHTML = "<p class='empty-state'>No products found</p>";
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Deals</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            ${res.data.map(p => {
+              const imgHtml = p.image.startsWith("/") 
+                ? `<img src="${p.image}" style="width:40px; height:40px; object-fit:contain; border-radius:8px; background:rgba(255,255,255,0.05)">`
+                : `<div style="font-size:24px">${p.image}</div>`;
+              
+              const badges = [];
+              if (p.is_deal) badges.push('<span class="status-badge status-pending" style="font-size:10px">Deal</span>');
+              if (p.is_featured) badges.push('<span class="status-badge status-confirmed" style="font-size:10px">Featured</span>');
+
+              return `
+              <tr>
+                <td>${imgHtml}</td>
+                <td><strong>${p.name}</strong></td>
+                <td>${p.category}</td>
+                <td>
+                  ${p.original_price ? `<strike style="color:var(--text-muted);font-size:12px">${formatPrice(p.original_price)}</strike><br>` : ''}
+                  ${formatPrice(p.price)}/${p.unit}
+                </td>
+                <td>${p.stock}</td>
+                <td>${badges.join(' ')}</td>
+                <td>
+                  <button class="action-btn" onclick="editProduct(${p.id})">✏️</button>
+                  <button class="action-btn delete" onclick="deleteProduct(${p.id})">🗑️</button>
+                </td>
+              </tr>
+            `}).join("")}
+          </tbody>
+        </table>
+      `;
     }
-  } catch (err) {
-    showToast("❌", "Network error.");
+  } catch (e) {
+    console.error(e);
   }
 }
 
-function openEmployeeModal() {
-  document.getElementById("employee-form").reset();
-  document.getElementById("employee-modal").classList.add("open");
+function openProductModal() {
+  editingProductId = null;
+  document.getElementById("modal-title").textContent = "Add Product";
+  document.getElementById("product-form").reset();
+  document.getElementById("image-upload-preview").style.display = "none";
+  document.getElementById("product-modal").classList.add("active");
 }
 
-function closeEmployeeModal(event) {
-  if (event && event.target !== event.currentTarget) return;
-  document.getElementById("employee-modal").classList.remove("open");
+function closeProductModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById("product-modal").classList.remove("active");
 }
 
-async function saveEmployee(e) {
-  e.preventDefault();
-  const btn = document.getElementById("btn-save-employee");
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = `Registering...`;
+async function editProduct(id) {
+  try {
+    const res = await api(`/api/products/${id}`);
+    if (res.success) {
+      const p = res.data;
+      editingProductId = p.id;
+      document.getElementById("modal-title").textContent = "Edit Product";
+      document.getElementById("prod-name").value = p.name;
+      document.getElementById("prod-category").value = p.category;
+      document.getElementById("prod-price").value = p.price;
+      document.getElementById("prod-original-price").value = p.original_price || "";
+      document.getElementById("prod-unit").value = p.unit;
+      document.getElementById("prod-stock").value = p.stock;
+      document.getElementById("prod-image").value = p.image;
+      document.getElementById("prod-is-deal").checked = p.is_deal;
+      document.getElementById("prod-is-featured").checked = p.is_featured;
+      
+      const preview = document.getElementById("image-upload-preview");
+      if (p.image.startsWith("/")) {
+        preview.innerHTML = `<img src="${p.image}" style="width:100px; border-radius:8px;">`;
+        preview.style.display = "block";
+      } else {
+        preview.style.display = "none";
+      }
 
-  const name = document.getElementById("emp-name").value;
-  const email = document.getElementById("emp-email").value;
-  const password = document.getElementById("emp-password").value;
+      document.getElementById("product-modal").classList.add("active");
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// Upload Image Handler
+document.getElementById("prod-image-upload").addEventListener("change", async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("image", file);
 
   try {
-    const res = await fetch(`${API}/api/auth/register-employee`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${adminToken}` },
-      body: JSON.stringify({ name, email, password }),
-    });
-    const data = await res.json();
+    const btn = document.getElementById("btn-save-product");
+    btn.disabled = true;
+    btn.textContent = "Uploading...";
 
-    if (data.success) {
-      showToast("✅", "Employee successfully registered!");
-      closeEmployeeModal();
-      loadEmployees();
+    const res = await api("/api/uploads/product-image", {
+      method: "POST",
+      body: formData
+    });
+
+    if (res.success) {
+      document.getElementById("prod-image").value = res.url;
+      const preview = document.getElementById("image-upload-preview");
+      preview.innerHTML = `<img src="${res.url}" style="width:100px; border-radius:8px; border:1px solid var(--border)">`;
+      preview.style.display = "block";
+      showToast("✅", "Image uploaded!");
     } else {
-      showToast("❌", data.message || "Failed to register employee.");
+      showToast("❌", res.message || "Upload failed");
     }
   } catch (err) {
-    showToast("❌", "Network error.");
+    console.error(err);
+    showToast("❌", "Upload error");
   } finally {
+    const btn = document.getElementById("btn-save-product");
     btn.disabled = false;
-    btn.innerHTML = originalText;
+    btn.textContent = "Save Product";
+  }
+});
+
+async function saveProduct(e) {
+  e.preventDefault();
+  const payload = {
+    name: document.getElementById("prod-name").value,
+    category: document.getElementById("prod-category").value,
+    price: parseFloat(document.getElementById("prod-price").value),
+    original_price: document.getElementById("prod-original-price").value ? parseFloat(document.getElementById("prod-original-price").value) : null,
+    unit: document.getElementById("prod-unit").value,
+    stock: parseInt(document.getElementById("prod-stock").value),
+    image: document.getElementById("prod-image").value || "📦",
+    is_deal: document.getElementById("prod-is-deal").checked,
+    is_featured: document.getElementById("prod-is-featured").checked
+  };
+
+  try {
+    let res;
+    if (editingProductId) {
+      res = await api(`/api/products/${editingProductId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload)
+      });
+    } else {
+      res = await api("/api/products", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+    }
+
+    if (res.success) {
+      showToast("✅", editingProductId ? "Product updated" : "Product added");
+      closeProductModal();
+      loadProducts();
+    } else {
+      showToast("❌", res.message);
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 
+async function deleteProduct(id) {
+  if (!confirm("Are you sure you want to delete this product?")) return;
+  try {
+    const res = await api(`/api/products/${id}`, { method: "DELETE" });
+    if (res.success) {
+      showToast("✅", "Product deleted");
+      loadProducts();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// -------- Orders --------
+let allOrders = [];
+
+async function loadOrders() {
+  try {
+    const res = await api("/api/orders/admin/all");
+    if (res.success) {
+      allOrders = res.data;
+      filterOrders();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function filterOrders() {
+  const status = document.getElementById("order-status-filter").value;
+  const filtered = status === "all" ? allOrders : allOrders.filter(o => o.status === status);
+  
+  const container = document.getElementById("orders-table");
+  if (filtered.length === 0) {
+    container.innerHTML = "<p class='empty-state'>No orders found</p>";
+    return;
+  }
+
+  container.innerHTML = `
+    <table>
+      <thead>
+        <tr><th>Order ID</th><th>Date</th><th>Customer Info</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        ${filtered.map(o => `
+          <tr>
+            <td><strong>#${o.order_number}</strong></td>
+            <td>${new Date(o.created_at).toLocaleString()}</td>
+            <td>
+              <div><strong>User #${o.user_id}</strong></div>
+              <div style="font-size:12px;color:var(--text-muted)">${o.delivery_address.substring(0, 30)}...</div>
+            </td>
+            <td><strong>${formatPrice(o.total)}</strong></td>
+            <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+            <td>
+              <select style="background:var(--bg-card);color:#fff;border:1px solid var(--border);border-radius:4px;padding:4px" 
+                      onchange="updateOrderStatus(${o.id}, this.value)">
+                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+            </td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+async function updateOrderStatus(id, status) {
+  try {
+    const res = await api(`/api/orders/admin/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status })
+    });
+    if (res.success) {
+      showToast("✅", "Order status updated");
+      loadOrders();
+      loadDashboard();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// -------- Coupons --------
+async function loadCoupons() {
+  try {
+    const res = await api("/api/coupons/admin/all");
+    if (res.success) {
+      const container = document.getElementById("coupons-table");
+      if (res.data.length === 0) {
+        container.innerHTML = "<p class='empty-state'>No coupons found</p>";
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            ${res.data.map(c => `
+              <tr>
+                <td><strong style="color:var(--primary); background:rgba(0,255,136,0.1); padding:4px 8px; border-radius:4px; font-family:monospace">${c.code}</strong></td>
+                <td>${c.discount_type === 'percentage' ? c.discount_value + '%' : formatPrice(c.discount_value)}</td>
+                <td>${formatPrice(c.min_order)}</td>
+                <td>
+                  ${c.is_active ? '<span class="status-badge status-delivered">Active</span>' : '<span class="status-badge status-cancelled">Inactive</span>'}
+                </td>
+                <td>
+                  <button class="action-btn delete" onclick="deleteCoupon(${c.id})">🗑️</button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function openCouponModal() {
+  document.getElementById("coupon-form").reset();
+  document.getElementById("coupon-modal").classList.add("active");
+}
+
+function closeCouponModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById("coupon-modal").classList.remove("active");
+}
+
+async function saveCoupon(e) {
+  e.preventDefault();
+  const payload = {
+    code: document.getElementById("coup-code").value.toUpperCase(),
+    description: document.getElementById("coup-desc").value,
+    discount_type: document.getElementById("coup-type").value,
+    discount_value: parseFloat(document.getElementById("coup-value").value),
+    min_order: parseFloat(document.getElementById("coup-min").value || 0),
+    max_discount: document.getElementById("coup-max").value ? parseFloat(document.getElementById("coup-max").value) : null
+  };
+
+  try {
+    const res = await api("/api/coupons", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    if (res.success) {
+      showToast("✅", "Coupon created!");
+      closeCouponModal();
+      loadCoupons();
+    } else {
+      showToast("❌", res.message);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function deleteCoupon(id) {
+  if (!confirm("Delete this coupon?")) return;
+  try {
+    const res = await api(`/api/coupons/${id}`, { method: "DELETE" });
+    if (res.success) {
+      showToast("✅", "Coupon deleted");
+      loadCoupons();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}

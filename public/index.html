@@ -1,297 +1,430 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vegetable Market AI — Future of Groceries</title>
-  <meta name="description" content="Shop premium groceries with AI-driven insights. Fresh fruits, vegetables, and more delivered to your doorstep." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/style.css" />
-  <!-- GSAP for scroll animations -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <!-- Three.js for 3D scene -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-</head>
-<body>
-  <!-- ============ LOADING SCREEN ============ -->
-  <div id="loading-screen">
-    <div class="loader-content">
-      <div class="loader-logo">
-        <span class="loader-v">V</span>
-        <span class="loader-title">egetable <span class="loader-accent">Market AI</span></span>
-      </div>
-      <div class="loader-tagline">The Future of Groceries</div>
-      <div class="loading-bar">
-        <div class="loading-bar-fill" id="loading-bar-fill"></div>
-      </div>
-      <div class="loading-text" id="loading-text">Initializing AI Engine...</div>
-    </div>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vegetable Market AI | Premium Grocery Delivery</title>
 
-  <!-- ============ 3D BACKGROUND LAYER ============ -->
-  <canvas id="bg-canvas"></canvas>
-  <div id="bg-layer"></div>
-  
-  <div class="app-layout">
-    <!-- ============ SIDEBAR ============ -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <a href="#" class="logo" onclick="navigateTo('home')">
-          <span class="logo-text">Vegetable <span class="logo-accent">Market AI</span></span>
-        </a>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <!-- Three.js for 3D Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loader-content">
+        <div class="loader-logo">
+          <span class="loader-v">V</span>
+        </div>
+        <h1 class="loader-title">Vegetable Market <span class="loader-accent">AI</span></h1>
+        <p class="loader-tagline">Premium Fresh Produce</p>
+        <div class="loading-bar">
+          <div class="loading-bar-fill" id="loading-progress"></div>
+        </div>
+        <p class="loading-text">Initializing 3D Environment...</p>
       </div>
-      <nav class="sidebar-nav">
-        <button class="nav-item active" onclick="navigateTo('home')">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          <span>Categories</span>
-        </button>
-        <button class="nav-item" onclick="showToast('❤️', 'Coming Soon!')">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          <span>My Farm Picks</span>
-        </button>
-        <button class="nav-item" onclick="loadAIInsights()">
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-          <span>AI Insights</span>
-        </button>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="user-profile-mini" id="user-profile-mini" style="display:none;">
-          <div class="user-avatar-small" id="user-avatar-sidebar">U</div>
-          <div class="user-info-small">
-            <span class="user-name-small" id="sidebar-user-name">User</span>
+    </div>
+
+    <!-- 3D Canvas Background -->
+    <div id="bg-layer"></div>
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- App Layout -->
+    <div class="app-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h1 class="logo-text">Fresh<span class="logo-accent">Cart</span></h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button class="nav-item active" onclick="app.switchTab('home')">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            Home
+          </button>
+          <button class="nav-item" onclick="app.switchTab('deals')">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Flash Deals
+          </button>
+          <button class="nav-item" onclick="app.switchTab('categories')">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            Categories
+          </button>
+          <button class="nav-item" id="nav-orders-btn" onclick="app.switchTab('orders')" style="display: none;">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            My Orders
+          </button>
+          <button class="nav-item" id="nav-wishlist-btn" onclick="app.switchTab('wishlist')" style="display: none;">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+            Wishlist
+          </button>
+        </nav>
+        
+        <div class="sidebar-promo">
+          <div class="promo-card">
+            <h4>Welcome Offer</h4>
+            <p>Use code <span class="badge">WELCOME20</span> for ₹20 off</p>
           </div>
         </div>
-      </div>
-    </aside>
+      </aside>
 
-    <div class="main-container">
-      <!-- ============ HEADER ============ -->
-      <header class="header" id="main-header">
-        <div class="header-content">
-          <nav class="top-nav">
-            <button class="top-nav-link active" onclick="navigateTo('home')">Market</button>
-            <button class="top-nav-link" onclick="navigateTo('orders')">Orders</button>
-            <button class="top-nav-link" onclick="loadAIInsights()">Smart Picks</button>
-          </nav>
-
-          <div class="search-container">
-            <div class="search-wrapper">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              <input type="text" id="search-input" placeholder="Search vegetables..." autocomplete="off" />
+      <!-- Main Container -->
+      <main class="main-container">
+        <!-- Header -->
+        <header class="header">
+          <div class="header-content">
+            <div class="delivery-promise">
+              <span class="bolt">⚡</span> Delivery in <span class="highlight">10-20 min</span>
             </div>
-          </div>
-
-          <div class="header-actions">
-            <button class="action-btn" id="cart-btn" onclick="navigateTo('cart')" aria-label="View cart">
-              <span>My Cart ( <span id="cart-badge">0</span> )</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-            </button>
             
-            <button class="action-btn" id="btn-login-header" onclick="window.location.href='/login.html'">
-              <span>Account</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </button>
+            <div class="search-container">
+              <div class="search-wrapper">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="global-search" placeholder="Search for groceries, fruits, veggies..." autocomplete="off"/>
+                <div id="search-dropdown" class="search-dropdown"></div>
+              </div>
+            </div>
 
-            <div class="user-menu-wrapper" id="user-menu" style="display:none;">
-              <button class="action-btn" onclick="logout()">
-                <span>Logout</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <div class="header-actions">
+              <!-- Auth / User Menu -->
+              <div id="auth-container">
+                <a href="/login.html" class="btn-header-auth" id="btn-login-header">Login</a>
+              </div>
+              
+              <div class="user-menu" id="user-menu-container" style="display: none;">
+                <button class="user-menu-btn" onclick="document.getElementById('user-dropdown').classList.toggle('open')">
+                  <div class="user-avatar" id="user-avatar-initial">U</div>
+                </button>
+                <div class="user-dropdown" id="user-dropdown">
+                  <div class="user-dropdown-header">
+                    <span class="dropdown-name" id="dropdown-user-name">User Name</span>
+                    <span class="dropdown-email" id="dropdown-user-email">user@email.com</span>
+                  </div>
+                  <div class="user-dropdown-divider"></div>
+                  <button class="dropdown-item" onclick="app.switchTab('orders')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    My Orders
+                  </button>
+                  <button class="dropdown-item" onclick="app.switchTab('wishlist')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                    Wishlist
+                  </button>
+                  <a href="/admin.html" class="dropdown-item" id="admin-link" style="display: none;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Dashboard
+                  </a>
+                  <div class="user-dropdown-divider"></div>
+                  <button class="dropdown-item dropdown-logout" onclick="app.logout()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+
+              <!-- Cart Toggle -->
+              <button class="action-btn cart-toggle-btn" onclick="app.toggleCart()">
+                <div class="cart-icon-wrapper">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 0a2 2 0 100 4 2 2 0 000-4z"></path></svg>
+                  <span class="cart-badge" id="cart-badge">0</span>
+                </div>
+                <div class="cart-btn-info">
+                  <span class="cart-btn-label">My Cart</span>
+                  <span class="cart-btn-total" id="header-cart-total">₹0</span>
+                </div>
               </button>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <!-- ============ MAIN CONTENT ============ -->
-      <main class="main-content" id="main-content">
-
-        <!-- HOME / MARKET PAGE -->
-        <section class="page page-home active" id="page-home">
-          <!-- Overview Section -->
-          <div class="dashboard-overview">
-            <div class="overview-group">
-              <h2 class="group-title">Market Overview</h2>
-              <div class="overview-cards">
-                <div class="stat-card glass-card">
-                  <div class="stat-icon-wrapper green">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <!-- Main Content Area -->
+        <div class="main-content">
+          
+          <!-- HOME PAGE -->
+          <div id="page-home" class="page active">
+            <!-- Hero Carousel -->
+            <section class="hero-carousel">
+              <div class="carousel-track" id="hero-carousel-track">
+                <!-- Slide 1 -->
+                <div class="hero-slide" style="background-image: var(--grad-purple)">
+                  <div class="hero-content">
+                    <span class="hero-tag">Limited Time</span>
+                    <h2>Fresh Fruits<br>Mega Sale</h2>
+                    <p>Up to 25% off on seasonal fruits</p>
+                    <button class="btn-primary" onclick="app.switchTab('deals')">Shop Now</button>
                   </div>
-                  <div class="stat-info">
-                    <span class="stat-value">2,39K+</span>
-                    <span class="stat-label">Fresh Arrivals</span>
-                  </div>
-                </div>
-                <div class="stat-card glass-card">
-                  <div class="stat-icon-wrapper purple">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                  </div>
-                  <div class="stat-info">
-                    <span class="stat-value">141+</span>
-                    <span class="stat-label">AI Recommendations</span>
+                  <div class="hero-visual">
+                    <img src="/assets/apple.png" alt="Fruits" class="floating-img">
                   </div>
                 </div>
               </div>
-            </div>
+              <div class="carousel-dots" id="carousel-dots"></div>
+            </section>
 
-            <div class="overview-group">
-              <h2 class="group-title">Trending Categories</h2>
-              <div class="trending-cards">
-                <div class="trend-card glass-card vibrant">
-                  <div class="trend-icon green">🥦</div>
-                  <div class="trend-info">
-                    <span class="trend-name">Vibrant Veggies</span>
-                    <div class="trend-stats">
-                      <div class="avatars">
-                        <span class="avatar"></span>
-                        <span class="avatar"></span>
-                        <span class="avatar"></span>
-                      </div>
-                      <span class="trend-count">56.3K</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="trend-card glass-card root">
-                  <div class="trend-icon purple">🥕</div>
-                  <div class="trend-info">
-                    <span class="trend-name">Root Delights</span>
-                    <div class="trend-stats">
-                      <div class="avatars">
-                        <span class="avatar"></span>
-                        <span class="avatar"></span>
-                        <span class="avatar"></span>
-                      </div>
-                      <span class="trend-count">19.7K</span>
-                    </div>
-                  </div>
+            <!-- Categories Visual Grid -->
+            <section class="category-grid-section">
+              <h3 class="section-title">Shop by Category</h3>
+              <div class="visual-category-grid" id="visual-categories">
+                <!-- Categories rendered here -->
+              </div>
+            </section>
+
+            <!-- Flash Deals -->
+            <section class="deals-section">
+              <div class="section-header">
+                <h3 class="section-title">⚡ Flash Deals</h3>
+                <div class="countdown-timer" id="flash-countdown">02h : 45m : 30s</div>
+                <button class="view-all-btn" onclick="app.switchTab('deals')">View All</button>
+              </div>
+              <div class="horizontal-scroll" id="flash-deals-container">
+                <!-- Deal cards rendered here -->
+              </div>
+            </section>
+
+            <!-- Main Product Feed -->
+            <section class="produce-section">
+              <div class="section-header">
+                <h3 class="section-title">Fresh Produce</h3>
+                
+                <div class="filter-actions">
+                  <select class="sort-select" id="sort-select" onchange="app.loadProducts()">
+                    <option value="popularity">Popularity</option>
+                    <option value="rating">Top Rated</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="newest">Newest Arrivals</option>
+                  </select>
                 </div>
               </div>
-            </div>
+              
+              <div class="category-filter" id="category-filter">
+                <button class="cat-chip active" onclick="app.filterCategory('All', this)">All Items</button>
+                <!-- Other categories rendered dynamically -->
+              </div>
+              
+              <div class="product-grid" id="product-grid">
+                <!-- Skeleton Loading State -->
+                <div class="product-card skeleton" style="height:360px"></div>
+                <div class="product-card skeleton" style="height:360px"></div>
+                <div class="product-card skeleton" style="height:360px"></div>
+                <div class="product-card skeleton" style="height:360px"></div>
+              </div>
+            </section>
           </div>
 
-          <!-- Featured Produce -->
-          <div class="produce-section">
-            <h2 class="group-title">Featured Produce</h2>
-            <div class="category-filter" id="category-filter">
-              <button class="cat-chip active" data-category="All" onclick="filterCategory('All', this)">All</button>
-            </div>
-            <div class="product-grid" id="product-grid">
-              <!-- Populated by JS -->
-            </div>
+          <!-- DEALS PAGE -->
+          <div id="page-deals" class="page">
+            <h2 class="page-title">⚡ Flash Deals</h2>
+            <div class="product-grid" id="deals-grid"></div>
           </div>
-        </section>
 
-        <!-- CART PAGE -->
-        <section class="page page-cart" id="page-cart">
-          <div class="container">
-            <button class="back-link" onclick="navigateTo('home')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-              Continue Shopping
-            </button>
-            <h2 class="page-title">Your Cart</h2>
-            <div class="login-prompt" id="cart-login-prompt" style="display:none;">
-              <h3>Please log in to use your cart</h3>
-              <a href="/login.html" class="btn btn-primary">Login / Register</a>
-            </div>
-            <div class="cart-layout">
-              <div class="cart-items" id="cart-items"></div>
-              <div class="cart-summary" id="cart-summary"></div>
-            </div>
-            <div class="cart-empty" id="cart-empty" style="display:none">
-              <div class="empty-icon">🛒</div>
-              <h3>Your cart is empty</h3>
-              <button class="btn btn-primary" onclick="navigateTo('home')">Start Shopping</button>
-            </div>
+          <!-- CATEGORIES PAGE -->
+          <div id="page-categories" class="page">
+            <h2 class="page-title">All Categories</h2>
+            <div class="visual-category-grid large" id="all-categories-grid"></div>
           </div>
-        </section>
 
-        <!-- CHECKOUT PAGE -->
-        <section class="page page-checkout" id="page-checkout">
-          <div class="container">
-            <button class="back-link" onclick="navigateTo('cart')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-              Back to Cart
-            </button>
-            <h2 class="page-title">Checkout</h2>
+          <!-- WISHLIST PAGE -->
+          <div id="page-wishlist" class="page">
+            <h2 class="page-title">My Wishlist ❤️</h2>
+            <div id="wishlist-container"></div>
+          </div>
+
+          <!-- ORDERS PAGE -->
+          <div id="page-orders" class="page">
+            <h2 class="page-title">Order History</h2>
+            <div id="orders-container"></div>
+          </div>
+          
+          <!-- CHECKOUT PAGE -->
+          <div id="page-checkout" class="page">
+            <a href="#" class="back-link" onclick="event.preventDefault(); app.switchTab('home')">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              Back to Shopping
+            </a>
+            <h2 class="page-title">Secure Checkout</h2>
+            
             <div class="checkout-layout">
-              <form class="checkout-form" id="checkout-form" onsubmit="placeOrder(event)">
-                <div class="form-section glass-card">
-                  <h3 class="form-section-title">Delivery Details</h3>
-                  <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="tel" id="customer-phone" placeholder="+91 98765 43210" />
+              <div class="checkout-form-container">
+                <form id="checkout-form" onsubmit="app.placeOrder(event)">
+                  <div class="form-section">
+                    <h3 class="form-section-title"><span class="form-step">1</span> Delivery Details</h3>
+                    <div class="form-group">
+                      <label>Full Name</label>
+                      <input type="text" id="chk-name" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                      <label>Phone Number</label>
+                      <input type="tel" id="chk-phone" required placeholder="+91 9876543210">
+                    </div>
+                    <div class="form-group">
+                      <label>Complete Address</label>
+                      <textarea id="chk-address" rows="3" required placeholder="Apt, Street, City, Pincode"></textarea>
+                    </div>
                   </div>
-                  <div class="form-group">
-                    <label>Delivery Address</label>
-                    <textarea id="customer-address" rows="3" placeholder="123 Main St, Apt 4, Mumbai 400001" required></textarea>
+                  
+                  <div class="form-section">
+                    <h3 class="form-section-title"><span class="form-step">2</span> Payment Method</h3>
+                    <div class="payment-options">
+                      <label class="payment-option">
+                        <input type="radio" name="payment" value="card" checked>
+                        <div class="payment-card">
+                          <span class="payment-icon">💳</span>
+                          <span>Credit/Debit Card</span>
+                        </div>
+                      </label>
+                      <label class="payment-option">
+                        <input type="radio" name="payment" value="upi">
+                        <div class="payment-card">
+                          <span class="payment-icon">📱</span>
+                          <span>UPI / QR</span>
+                        </div>
+                      </label>
+                      <label class="payment-option">
+                        <input type="radio" name="payment" value="cod">
+                        <div class="payment-card">
+                          <span class="payment-icon">💵</span>
+                          <span>Cash on Delivery</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" class="btn-primary w-full" id="btn-place-order" style="height: 54px; font-size: 16px;">
+                    Place Order Securely
+                  </button>
+                </form>
+              </div>
+              
+              <div class="checkout-summary-col">
+                <div class="checkout-summary">
+                  <h3 class="summary-title">Order Summary</h3>
+                  <div id="checkout-items-list" class="checkout-items-mini"></div>
+                  
+                  <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="chk-subtotal">₹0</span>
+                  </div>
+                  <div class="summary-row">
+                    <span>Delivery Fee</span>
+                    <span class="free">FREE</span>
+                  </div>
+                  <div class="summary-row discount-row" id="chk-discount-row" style="display: none;">
+                    <span>Discount</span>
+                    <span id="chk-discount" class="text-green">-₹0</span>
+                  </div>
+                  <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="chk-total">₹0</span>
+                  </div>
+                  
+                  <div class="delivery-time-estimate">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Estimated Delivery: <strong>10-20 mins</strong>
                   </div>
                 </div>
-                <div class="form-section glass-card">
-                  <h3 class="form-section-title">Payment Method</h3>
-                  <div class="payment-options">
-                    <label class="payment-option selected">
-                      <input type="radio" name="payment" value="cod" checked />
-                      <div class="payment-card">💵 Cash on Delivery</div>
-                    </label>
-                  </div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-lg btn-full" id="place-order-btn">Confirm Order</button>
-              </form>
-              <div class="checkout-summary glass-card" id="checkout-summary"></div>
+              </div>
             </div>
           </div>
-        </section>
 
-        <!-- ORDER CONFIRMATION PAGE -->
-        <section class="page page-confirmation" id="page-confirmation">
-          <div class="container">
-            <div class="confirmation-card glass-card" id="confirmation-card"></div>
-          </div>
-        </section>
+        </div>
 
-        <!-- ORDER HISTORY PAGE -->
-        <section class="page page-orders" id="page-orders">
-          <div class="container">
-            <button class="back-link" onclick="navigateTo('home')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-              Continue Shopping
-            </button>
-            <h2 class="page-title">My Orders</h2>
-            <div class="orders-list" id="orders-list"></div>
-            <div class="orders-empty" id="orders-empty" style="display:none;">
-              <h3>No orders yet</h3>
-              <button class="btn btn-primary" onclick="navigateTo('home')">Start Shopping</button>
-            </div>
-          </div>
-        </section>
-
+        <!-- Footer -->
+        <footer class="footer">
+          <p>© 2026 Vegetable Market AI. Powered by Antigravity.</p>
+        </footer>
       </main>
     </div>
-  </div>
 
-  <!-- ============ PRODUCT MODAL ============ -->
-  <div class="modal-overlay" id="product-modal" style="display:none;" onclick="closeProductModal(event)">
-    <div class="modal-content glass-card" id="product-modal-content">
-      <button class="modal-close" onclick="closeProductModal()">&times;</button>
-      <div class="modal-body" id="product-modal-body"></div>
+    <!-- CART DRAWER (Slide-in) -->
+    <div class="cart-overlay" id="cart-overlay" onclick="app.toggleCart()"></div>
+    <aside class="cart-drawer" id="cart-drawer">
+      <div class="cart-drawer-header">
+        <h3>My Cart</h3>
+        <button class="close-drawer-btn" onclick="app.toggleCart()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <div class="cart-delivery-banner">
+        <div class="truck-icon">🚚</div>
+        <div>
+          <div class="delivery-title">Delivery in 10 minutes</div>
+          <div class="delivery-subtitle">Shipment from nearest dark store</div>
+        </div>
+      </div>
+
+      <div class="cart-drawer-body" id="cart-drawer-body">
+        <!-- Cart items rendered here -->
+      </div>
+      
+      <div class="cart-drawer-footer" id="cart-drawer-footer">
+        <div class="coupon-section">
+          <div class="coupon-input-group">
+            <input type="text" id="coupon-code" placeholder="Enter Coupon Code" />
+            <button onclick="app.applyCoupon()" id="btn-apply-coupon">Apply</button>
+          </div>
+          <div id="coupon-message" class="coupon-message"></div>
+        </div>
+        
+        <div class="bill-details">
+          <div class="bill-row">
+            <span>Item Total</span>
+            <span id="drawer-subtotal">₹0</span>
+          </div>
+          <div class="bill-row">
+            <span>Delivery Fee</span>
+            <span class="free-text"><strike>₹40</strike> FREE</span>
+          </div>
+          <div class="bill-row" id="drawer-discount-row" style="display: none;">
+            <span>Discount <span class="badge badge-success" id="drawer-coupon-tag"></span></span>
+            <span class="discount-text" id="drawer-discount">-₹0</span>
+          </div>
+          <div class="bill-row total-row">
+            <span>Grand Total</span>
+            <span id="drawer-total">₹0</span>
+          </div>
+        </div>
+
+        <button class="checkout-btn" onclick="app.proceedToCheckout()" id="btn-checkout-drawer">
+          <span>Checkout</span>
+          <span class="checkout-btn-total" id="btn-checkout-amt">₹0</span>
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Product Quick View Modal -->
+    <div class="modal-overlay" id="product-modal" style="display: none;">
+      <div class="glass-card modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="app.closeProductModal(event)">&times;</button>
+        <div class="modal-body" id="modal-product-details">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- ============ TOAST ============ -->
-  <div class="toast-container" id="toast-container"></div>
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <!-- Custom Cursor Glow -->
+    <div id="cursor-glow"></div>
 
-  <!-- ============ FOOTER ============ -->
-  <footer class="footer">
-    <div class="container">
-      <p id="date-time"></p>
-      <p>Vegetable Market AI — Premium Dashboard</p>
-    </div>
-  </footer>
-
-  <script src="/js/three-scene.js"></script>
-  <script src="/js/ux-effects.js"></script>
-  <script src="/js/app.js"></script>
-</body>
+    <script src="/js/three-scene.js"></script>
+    <script src="/js/ux-effects.js"></script>
+    <script src="/js/app.js"></script>
+  </body>
 </html>

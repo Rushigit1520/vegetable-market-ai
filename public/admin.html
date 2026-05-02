@@ -7,7 +7,7 @@
   <meta name="description" content="Admin panel for managing products and orders." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/admin.css" />
 </head>
 <body>
@@ -33,6 +33,10 @@
       <button class="nav-item" data-tab="orders" onclick="switchAdminTab('orders', this)" id="nav-orders">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         <span>Orders</span>
+      </button>
+      <button class="nav-item" data-tab="coupons" onclick="switchAdminTab('coupons', this)" id="nav-coupons">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+        <span>Coupons</span>
       </button>
       <button class="nav-item" data-tab="employees" onclick="switchAdminTab('employees', this)" id="nav-employees" style="display:none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -97,7 +101,7 @@
         <div class="stat-card">
           <div class="stat-icon stat-icon-orange">💰</div>
           <div class="stat-info">
-            <span class="stat-value" id="stat-revenue">$0</span>
+            <span class="stat-value" id="stat-revenue">₹0</span>
             <span class="stat-label">Total Revenue</span>
           </div>
         </div>
@@ -148,6 +152,23 @@
         <p class="empty-state">Loading orders...</p>
       </div>
     </section>
+    
+    <!-- COUPONS TAB -->
+    <section class="admin-tab" id="tab-coupons">
+      <div class="tab-header">
+        <div>
+          <h1>Coupons</h1>
+          <span class="tab-subtitle">Manage promo codes and discounts</span>
+        </div>
+        <button class="btn-primary" onclick="openCouponModal()" id="btn-add-coupon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Create Coupon
+        </button>
+      </div>
+      <div class="table-container" id="coupons-table">
+        <p class="empty-state">Loading coupons...</p>
+      </div>
+    </section>
 
     <!-- EMPLOYEES TAB -->
     <section class="admin-tab" id="tab-employees">
@@ -188,71 +209,100 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="prod-price">Price ($)</label>
-              <input type="number" id="prod-price" step="0.01" min="0" placeholder="0.00" required />
+              <label for="prod-original-price">Original Price (₹)</label>
+              <input type="number" id="prod-original-price" step="0.01" min="0" placeholder="Optional" />
             </div>
             <div class="form-group">
-              <label for="prod-unit">Unit</label>
-              <input type="text" id="prod-unit" placeholder="e.g. lb, bunch, pack" required />
+              <label for="prod-price">Current Price (₹)</label>
+              <input type="number" id="prod-price" step="0.01" min="0" placeholder="0.00" required />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="prod-image">Emoji Icon</label>
-              <input type="text" id="prod-image" placeholder="e.g. 🍌" maxlength="4" />
+              <label for="prod-unit">Unit</label>
+              <input type="text" id="prod-unit" placeholder="e.g. kg, bunch, pack" required />
             </div>
             <div class="form-group">
               <label for="prod-stock">Stock Quantity</label>
-              <input type="number" id="prod-stock" min="0" placeholder="0" required />
+              <input type="number" id="prod-stock" min="0" value="10" required />
             </div>
           </div>
           <div class="form-group">
-            <label for="prod-description">Description</label>
-            <textarea id="prod-description" rows="3" placeholder="Product description..."></textarea>
+            <label for="prod-image-upload">Product Image (Upload File)</label>
+            <input type="file" id="prod-image-upload" accept="image/*" />
+            <div id="image-upload-preview" style="margin-top:10px; display:none;"></div>
+          </div>
+          <div class="form-group">
+            <label for="prod-image">Or Image Path / Emoji</label>
+            <input type="text" id="prod-image" placeholder="/assets/image.png or 🍎" />
+          </div>
+          <div class="form-row checkbox-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="prod-is-deal"> Is Flash Deal
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="prod-is-featured"> Featured Product
+            </label>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-secondary" onclick="closeProductModal()">Cancel</button>
           <button type="submit" class="btn-primary" id="btn-save-product">Save Product</button>
         </div>
-        <input type="hidden" id="prod-edit-id" />
       </form>
     </div>
   </div>
 
-  <!-- Employee Modal -->
-  <div class="modal-overlay" id="employee-modal" onclick="closeEmployeeModal(event)">
+  <!-- Coupon Modal -->
+  <div class="modal-overlay" id="coupon-modal" onclick="closeCouponModal(event)">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h2>Register Employee</h2>
-        <button class="modal-close" onclick="closeEmployeeModal()">&times;</button>
+        <h2>Create Coupon</h2>
+        <button class="modal-close" onclick="closeCouponModal()">&times;</button>
       </div>
-      <form id="employee-form" onsubmit="saveEmployee(event)">
+      <form id="coupon-form" onsubmit="saveCoupon(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label for="emp-name">Full Name</label>
-            <input type="text" id="emp-name" placeholder="John Doe" required />
+            <label for="coup-code">Coupon Code</label>
+            <input type="text" id="coup-code" placeholder="e.g. SUMMER20" style="text-transform:uppercase" required />
           </div>
-          <div class="form-group" style="margin-top:14px;">
-            <label for="emp-email">Email Address</label>
-            <input type="email" id="emp-email" placeholder="john@freshcart.com" required />
+          <div class="form-group">
+            <label for="coup-desc">Description</label>
+            <input type="text" id="coup-desc" placeholder="Get 20% off on summer fruits" />
           </div>
-          <div class="form-group" style="margin-top:14px;">
-            <label for="emp-password">Password</label>
-            <input type="password" id="emp-password" required />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="coup-type">Discount Type</label>
+              <select id="coup-type" required>
+                <option value="fixed">Fixed Amount (₹)</option>
+                <option value="percentage">Percentage (%)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="coup-value">Discount Value</label>
+              <input type="number" id="coup-value" step="0.01" min="0" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="coup-min">Min Order Amount (₹)</label>
+              <input type="number" id="coup-min" value="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="coup-max">Max Discount (₹, for % type)</label>
+              <input type="number" id="coup-max" min="0" placeholder="Optional" />
+            </div>
           </div>
         </div>
-        <div class="modal-footer" style="margin-top:24px;">
-          <button type="button" class="btn-secondary" onclick="closeEmployeeModal()">Cancel</button>
-          <button type="submit" class="btn-primary" id="btn-save-employee">Hire Staff</button>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeCouponModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Create Coupon</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div class="toast-container" id="toast-container"></div>
-
+  <div id="toast-container"></div>
   <script src="/js/admin.js"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
   try {
     const [items] = await pool.query(
       `SELECT c.id, c.product_id, c.quantity,
-              p.name, p.category, p.price, p.unit, p.image, p.stock
+              p.name, p.category, p.price, p.original_price, p.unit, p.image, p.stock
        FROM cart c
        JOIN products p ON c.product_id = p.id
        WHERE c.user_id = ?`,
@@ -26,6 +26,7 @@ router.get("/", async (req, res) => {
         name: item.name,
         category: item.category,
         price: parseFloat(item.price),
+        original_price: item.original_price ? parseFloat(item.original_price) : null,
         unit: item.unit,
         image: item.image,
         inStock: item.stock,
@@ -138,6 +139,17 @@ router.put("/:productId", async (req, res) => {
   }
 });
 
+// DELETE /api/cart/clear — clear entire cart (BEFORE /:productId to avoid conflicts)
+router.delete("/clear", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM cart WHERE user_id = ?", [req.user.id]);
+    res.json({ success: true, message: "Cart cleared" });
+  } catch (err) {
+    console.error("Clear cart error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
 // DELETE /api/cart/:productId — remove single item
 router.delete("/:productId", async (req, res) => {
   try {
@@ -157,17 +169,6 @@ router.delete("/:productId", async (req, res) => {
     res.json({ success: true, message: "Item removed from cart" });
   } catch (err) {
     console.error("Remove from cart error:", err);
-    res.status(500).json({ success: false, message: "Server error." });
-  }
-});
-
-// DELETE /api/cart — clear entire cart
-router.delete("/", async (req, res) => {
-  try {
-    await pool.query("DELETE FROM cart WHERE user_id = ?", [req.user.id]);
-    res.json({ success: true, message: "Cart cleared" });
-  } catch (err) {
-    console.error("Clear cart error:", err);
     res.status(500).json({ success: false, message: "Server error." });
   }
 });
