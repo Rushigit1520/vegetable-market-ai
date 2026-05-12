@@ -87,6 +87,41 @@ async function seed() {
     );
     console.log("✅ Seeded 5 coupon codes");
 
+    // Create default user
+    const hashedUserPw = await bcrypt.hash("user123", 10);
+    const [userRes] = await connection.query(
+      "INSERT INTO users (name, email, password, role, loyalty_points) VALUES (?, ?, ?, ?, ?)",
+      ["Test User", "user@freshcart.com", hashedUserPw, "user", 500]
+    );
+    const userId = userRes.insertId;
+    console.log("✅ Default user created (user@freshcart.com / user123) with 500 loyalty points");
+
+    // Insert mock orders for analytics
+    const pastDates = [1, 2, 5, 7, 10, 15, 20].map(d => new Date(Date.now() - d * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+    for (let i = 0; i < pastDates.length; i++) {
+      const orderNum = `VM-TEST${i}`;
+      const status = i === 0 ? "pending" : "delivered";
+      const total = 100 + (i * 50);
+      const [orderRes] = await connection.query(
+        "INSERT INTO orders (user_id, order_number, total, status, address, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        [userId, orderNum, total, status, "123 Test St", pastDates[i]]
+      );
+      
+      // Mock order item (Product ID 1 - Bananas)
+      await connection.query(
+        "INSERT INTO order_items (order_id, product_id, product_name, price, quantity, subtotal) VALUES (?, ?, ?, ?, ?, ?)",
+        [orderRes.insertId, 1, "Organic Bananas", 49, 2, 98]
+      );
+    }
+    console.log("✅ Seeded mock orders for analytics");
+
+    // Seed Reviews
+    await connection.query(
+      "INSERT INTO reviews (user_id, product_id, rating, comment) VALUES (?, ?, ?, ?)",
+      [userId, 1, 5, "These bananas are super fresh! Best I've had."]
+    );
+    console.log("✅ Seeded mock reviews");
+
     console.log("\n🎉 Seed completed successfully!\n");
   } catch (err) {
     console.error("❌ Seed failed:", err.message);

@@ -1,7 +1,7 @@
 {
   "name": "vegetable-market-ai",
-  "version": "2.0.0",
-  "description": "Vegetable Market Using AI — Full Stack with MySQL, Auth & Admin",
+  "version": "3.0.0",
+  "description": "Vegetable Market Using AI — Full Stack with MySQL, Auth, Real-time, Loyalty & Admin Analytics",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
@@ -23,6 +23,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.1.1",
     "mysql2": "^3.11.0",
+    "socket.io": "^4.8.3",
     "uuid": "^10.0.0",
     "winston": "^3.19.0",
     "zod": "^4.4.1"

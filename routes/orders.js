@@ -7,17 +7,15 @@ const { authenticate, requireStaff } = require("../middleware/auth");
 router.post("/", authenticate, async (req, res) => {
   const connection = await pool.getConnection();
   try {
-    const { address, phone, coupon_code } = req.body;
+    const { address, phone, coupon_code, payment_method } = req.body;
 
     if (!address) {
       return res.status(400).json({ success: false, message: "Delivery address is required." });
     }
 
-    // Get cart items and lock related products for update
     const [cartItems] = await connection.query(
       `SELECT c.product_id, c.quantity, p.name, p.price, p.stock
-       FROM cart c
-       JOIN products p ON c.product_id = p.id
+       FROM cart c JOIN products p ON c.product_id = p.id
        WHERE c.user_id = ? FOR UPDATE`,
       [req.user.id]
     );
@@ -27,7 +25,6 @@ router.post("/", authenticate, async (req, res) => {
       return res.status(400).json({ success: false, message: "Cart is empty." });
     }
 
-    // Calculate total and verify stock
     let subtotal = 0;
     for (const item of cartItems) {
       if (item.stock < item.quantity) {
@@ -57,8 +54,6 @@ router.post("/", authenticate, async (req, res) => {
             discount = parseFloat(coupon.discount_value);
           }
           appliedCoupon = coupon.code;
-
-          // Decrement uses if not unlimited
           if (coupon.uses_remaining > 0) {
             await connection.query("UPDATE coupons SET uses_remaining = uses_remaining - 1 WHERE id = ?", [coupon.id]);
           }
@@ -69,24 +64,20 @@ router.post("/", authenticate, async (req, res) => {
     const total = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
     const orderNumber = `VM-${Date.now().toString(36).toUpperCase()}`;
 
-    // Start transaction
+    // Calculate loyalty points earned (1 point per ₹10 spent)
+    const loyaltyEarned = Math.floor(total / 10);
+
     await connection.beginTransaction();
 
-    // Insert order
     const [orderResult] = await connection.query(
-      "INSERT INTO orders (user_id, order_number, total, discount, coupon_code, status, address, phone) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)",
-      [req.user.id, orderNumber, total, Math.round(discount * 100) / 100, appliedCoupon, address, phone || ""]
+      "INSERT INTO orders (user_id, order_number, total, discount, coupon_code, status, payment_method, address, phone, loyalty_earned) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)",
+      [req.user.id, orderNumber, total, Math.round(discount * 100) / 100, appliedCoupon, payment_method || "cod", address, phone || "", loyaltyEarned]
     );
 
     const orderId = orderResult.insertId;
 
-    // Insert order items
     const orderItemValues = cartItems.map((item) => [
-      orderId,
-      item.product_id,
-      item.name,
-      item.price,
-      item.quantity,
+      orderId, item.product_id, item.name, item.price, item.quantity,
       Math.round(parseFloat(item.price) * item.quantity * 100) / 100,
     ]);
 
@@ -95,22 +86,38 @@ router.post("/", authenticate, async (req, res) => {
       [orderItemValues]
     );
 
-    // Decrement stock for each product
     for (const item of cartItems) {
+      await connection.query("UPDATE products SET stock = stock - ? WHERE id = ?", [item.quantity, item.product_id]);
+    }
+
+    // Award loyalty points
+    if (loyaltyEarned > 0) {
+      await connection.query("UPDATE users SET loyalty_points = loyalty_points + ? WHERE id = ?", [loyaltyEarned, req.user.id]);
       await connection.query(
-        "UPDATE products SET stock = stock - ? WHERE id = ?",
-        [item.quantity, item.product_id]
+        "INSERT INTO loyalty_transactions (user_id, points, type, description, order_id) VALUES (?, ?, 'earned', ?, ?)",
+        [req.user.id, loyaltyEarned, `Earned ${loyaltyEarned} points for order ${orderNumber}`, orderId]
       );
     }
 
-    // Clear cart
-    await connection.query("DELETE FROM cart WHERE user_id = ?", [req.user.id]);
+    // Record price history snapshot
+    for (const item of cartItems) {
+      await connection.query(
+        "INSERT IGNORE INTO price_history (product_id, price) SELECT id, price FROM products WHERE id = ?",
+        [item.product_id]
+      );
+    }
 
+    await connection.query("DELETE FROM cart WHERE user_id = ?", [req.user.id]);
     await connection.commit();
 
-    // Fetch the complete order
     const [order] = await connection.query("SELECT * FROM orders WHERE id = ?", [orderId]);
     const [items] = await connection.query("SELECT * FROM order_items WHERE order_id = ?", [orderId]);
+
+    // Emit real-time event
+    const io = req.app.get("io");
+    if (io) {
+      io.to("admin_room").emit("new_order", { orderNumber, total, userId: req.user.id });
+    }
 
     res.status(201).json({
       success: true,
@@ -119,11 +126,8 @@ router.post("/", authenticate, async (req, res) => {
         ...order[0],
         total: parseFloat(order[0].total),
         discount: parseFloat(order[0].discount),
-        items: items.map((i) => ({
-          ...i,
-          price: parseFloat(i.price),
-          subtotal: parseFloat(i.subtotal),
-        })),
+        loyaltyEarned,
+        items: items.map((i) => ({ ...i, price: parseFloat(i.price), subtotal: parseFloat(i.subtotal) })),
       },
     });
   } catch (err) {
@@ -143,22 +147,14 @@ router.get("/", authenticate, async (req, res) => {
       [req.user.id]
     );
 
-    // Fetch items for each order
     const ordersWithItems = await Promise.all(
       orders.map(async (order) => {
-        const [items] = await pool.query(
-          "SELECT * FROM order_items WHERE order_id = ?",
-          [order.id]
-        );
+        const [items] = await pool.query("SELECT * FROM order_items WHERE order_id = ?", [order.id]);
         return {
           ...order,
           total: parseFloat(order.total),
           discount: parseFloat(order.discount || 0),
-          items: items.map((i) => ({
-            ...i,
-            price: parseFloat(i.price),
-            subtotal: parseFloat(i.subtotal),
-          })),
+          items: items.map((i) => ({ ...i, price: parseFloat(i.price), subtotal: parseFloat(i.subtotal) })),
         };
       })
     );
@@ -170,33 +166,56 @@ router.get("/", authenticate, async (req, res) => {
   }
 });
 
-// ============ ADMIN ROUTES (BEFORE /:id to avoid route conflicts) ============
+// POST /api/orders/:id/reorder — re-order from past order
+router.post("/:id/reorder", authenticate, async (req, res) => {
+  try {
+    const [orders] = await pool.query("SELECT * FROM orders WHERE id = ? AND user_id = ?", [req.params.id, req.user.id]);
+    if (orders.length === 0) return res.status(404).json({ success: false, message: "Order not found." });
+
+    const [items] = await pool.query("SELECT * FROM order_items WHERE order_id = ?", [req.params.id]);
+
+    // Clear current cart and add all items
+    await pool.query("DELETE FROM cart WHERE user_id = ?", [req.user.id]);
+
+    for (const item of items) {
+      if (item.product_id) {
+        const [prod] = await pool.query("SELECT stock FROM products WHERE id = ?", [item.product_id]);
+        if (prod.length > 0 && prod[0].stock > 0) {
+          const qty = Math.min(item.quantity, prod[0].stock);
+          await pool.query(
+            "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE quantity = ?",
+            [req.user.id, item.product_id, qty, qty]
+          );
+        }
+      }
+    }
+
+    res.json({ success: true, message: "Items added to cart from previous order!" });
+  } catch (err) {
+    console.error("Reorder error:", err);
+    res.status(500).json({ success: false, message: "Server error." });
+  }
+});
+
+// ============ ADMIN ROUTES ============
 
 // GET /api/orders/admin/all — view all orders (staff)
 router.get("/admin/all", authenticate, requireStaff, async (req, res) => {
   try {
     const [orders] = await pool.query(
       `SELECT o.*, u.name as user_name, u.email as user_email
-       FROM orders o
-       JOIN users u ON o.user_id = u.id
+       FROM orders o JOIN users u ON o.user_id = u.id
        ORDER BY o.created_at DESC`
     );
 
     const ordersWithItems = await Promise.all(
       orders.map(async (order) => {
-        const [items] = await pool.query(
-          "SELECT * FROM order_items WHERE order_id = ?",
-          [order.id]
-        );
+        const [items] = await pool.query("SELECT * FROM order_items WHERE order_id = ?", [order.id]);
         return {
           ...order,
           total: parseFloat(order.total),
           discount: parseFloat(order.discount || 0),
-          items: items.map((i) => ({
-            ...i,
-            price: parseFloat(i.price),
-            subtotal: parseFloat(i.subtotal),
-          })),
+          items: items.map((i) => ({ ...i, price: parseFloat(i.price), subtotal: parseFloat(i.subtotal) })),
         };
       })
     );
@@ -215,18 +234,23 @@ router.put("/admin/:id/status", authenticate, requireStaff, async (req, res) => 
     const validStatuses = ["pending", "confirmed", "preparing", "out_for_delivery", "delivered", "cancelled"];
 
     if (!status || !validStatuses.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
-      });
+      return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${validStatuses.join(", ")}` });
     }
 
     const [existing] = await pool.query("SELECT * FROM orders WHERE id = ?", [req.params.id]);
-    if (existing.length === 0) {
-      return res.status(404).json({ success: false, message: "Order not found." });
-    }
+    if (existing.length === 0) return res.status(404).json({ success: false, message: "Order not found." });
 
     await pool.query("UPDATE orders SET status = ? WHERE id = ?", [status, req.params.id]);
+
+    // Emit real-time status update to the user
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user_${existing[0].user_id}`).emit("order_status_update", {
+        orderId: existing[0].id,
+        orderNumber: existing[0].order_number,
+        status,
+      });
+    }
 
     res.json({ success: true, message: `Order status updated to ${status}.` });
   } catch (err) {
@@ -235,22 +259,13 @@ router.put("/admin/:id/status", authenticate, requireStaff, async (req, res) => 
   }
 });
 
-// GET /api/orders/:id — get single order (AFTER admin routes to avoid conflicts)
+// GET /api/orders/:id — get single order
 router.get("/:id", authenticate, async (req, res) => {
   try {
-    const [orders] = await pool.query(
-      "SELECT * FROM orders WHERE id = ? AND user_id = ?",
-      [req.params.id, req.user.id]
-    );
+    const [orders] = await pool.query("SELECT * FROM orders WHERE id = ? AND user_id = ?", [req.params.id, req.user.id]);
+    if (orders.length === 0) return res.status(404).json({ success: false, message: "Order not found." });
 
-    if (orders.length === 0) {
-      return res.status(404).json({ success: false, message: "Order not found." });
-    }
-
-    const [items] = await pool.query(
-      "SELECT * FROM order_items WHERE order_id = ?",
-      [orders[0].id]
-    );
+    const [items] = await pool.query("SELECT * FROM order_items WHERE order_id = ?", [orders[0].id]);
 
     res.json({
       success: true,
@@ -258,11 +273,7 @@ router.get("/:id", authenticate, async (req, res) => {
         ...orders[0],
         total: parseFloat(orders[0].total),
         discount: parseFloat(orders[0].discount || 0),
-        items: items.map((i) => ({
-          ...i,
-          price: parseFloat(i.price),
-          subtotal: parseFloat(i.subtotal),
-        })),
+        items: items.map((i) => ({ ...i, price: parseFloat(i.price), subtotal: parseFloat(i.subtotal) })),
       },
     });
   } catch (err) {

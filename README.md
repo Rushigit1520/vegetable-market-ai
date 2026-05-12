@@ -9,26 +9,31 @@ Vegetable Market AI is a full-stack, state-of-the-art e-commerce web application
 ## ✨ Premium Features
 
 ### 🎨 Frontend (Blinkit-Class UI)
-- **Glassmorphism & Neon Design:** Deep dark theme (`#0a0f16`) layered with frosted glass panels (`backdrop-filter`) and vibrant neon accents (Green, Purple, Gold).
+- **Progressive Web App (PWA):** Fully installable on mobile/desktop with service worker offline caching and custom manifest.
+- **Glassmorphism & Neon Design:** Deep dark theme (`#0a0f16`) layered with frosted glass panels (`backdrop-filter`), with a seamless Light Mode toggle.
 - **Interactive 3D Environment:** A custom `three.js` particle system with parallax scrolling and mouse-follow interactions.
-- **Micro-Animations:** Fluid GSAP entry animations, `VanillaTilt` 3D product cards, and confetti celebrations upon successful checkout.
-- **Slide-In Cart Drawer:** Manage cart quantities, view delivery estimates, and apply promo codes directly without leaving the page.
-- **Advanced Navigation:** Global search with instant dropdown previews, category visual grids, and horizontal flash-deal scrolls.
-- **User Wishlist:** Save items for later with persistent database tracking.
+- **AI Chatbot Assistant:** Floating chat widget answering product queries, tracking orders, and providing discount codes.
+- **Real-Time Order Tracking:** Socket.IO integration provides live timeline updates without refreshing the page.
+- **Micro-Animations:** Fluid GSAP entry animations, `VanillaTilt` 3D product cards, and confetti celebrations.
+- **Slide-In Cart Drawer:** Manage cart quantities, view delivery estimates, and apply promo codes directly.
+- **Loyalty & Rewards:** Earn points on every purchase and redeem them for discounts. Includes a visually rich rewards tier system.
 
 ### ⚙️ Backend (Production-Ready)
+- **Admin Analytics Dashboard:** Powered by Chart.js, visualizing revenue trends, category breakdowns, and restock alerts.
+- **Real-Time Notifications:** Socket.IO pushes live order alerts to the admin panel instantly.
 - **Role-Based Access Control (RBAC):** Three distinct roles: `user` (shoppers), `employee` (staff managers), and `admin` (god-mode).
 - **Transactional Inventory Management:** Strict row-level locking (`FOR UPDATE`) prevents overselling of stock during concurrent checkouts.
-- **Promotions Engine:** Full coupon code support with percentage/fixed discounts and minimum order validation.
-- **Secure File Uploads:** Integrated `multer` for secure, on-premise product image uploads from the admin dashboard.
-- **Security Middleware:** Hardened with `helmet`, rate-limiting, and parameterized SQL queries to prevent injections.
+- **Subscriptions Engine:** Users can schedule recurring daily, weekly, or monthly deliveries of essential items.
+- **Product Reviews & Ratings:** Verified purchasers can leave star ratings and reviews, which dynamically affect product rankings.
+- **AI Recommendations:** "Frequently Bought Together" bundles and price-trend analysis endpoints.
+- **Security Middleware:** Hardened with `helmet`, rate-limiting, and parameterized SQL queries.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** Vanilla HTML5, CSS3 (Custom Variables, CSS Grid/Flexbox), Vanilla JS, Three.js, GSAP.
-- **Backend:** Node.js, Express.js.
+- **Frontend:** Vanilla HTML5, CSS3, Vanilla JS, Three.js, GSAP, Chart.js.
+- **Backend:** Node.js, Express.js, Socket.IO.
 - **Database:** MySQL 8.0 (using `mysql2/promise` with connection pooling).
 - **Authentication:** JWT (JSON Web Tokens) with `bcryptjs` password hashing.
 - **Deployment:** Docker & Docker Compose configured for multi-container orchestration.
@@ -65,9 +70,9 @@ npm install
 npm run seed
 ```
 **Default Accounts Created:**
-- **Admin:** `admin@market.com` / `admin123`
-- **Employee:** `staff@market.com` / `staff123`
-- **User:** `user@market.com` / `user123`
+- **Admin:** `admin@freshcart.com` / `admin123`
+- **Employee:** `employee@freshcart.com` / `emp123`
+- **User:** `user@freshcart.com` / `user123`
 
 ### 4. Running Locally
 Start the development server:
@@ -95,13 +100,17 @@ d:\demo1\
 ├── middleware/
 │   └── auth.js        # JWT validation and RBAC logic
 ├── routes/
-│   ├── auth.js        # Login, Register
-│   ├── products.js    # CRUD, Trending, Deals endpoints
-│   ├── cart.js        # Cart management
-│   ├── orders.js      # Transactional checkout and order tracking
-│   ├── wishlist.js    # User wishlists
-│   ├── coupons.js     # Promo code validation and admin CRUD
-│   └── uploads.js     # Multer image uploads
+│   ├── auth.js            # Login, Register
+│   ├── products.js        # CRUD, Trending, Deals endpoints
+│   ├── cart.js            # Cart management
+│   ├── orders.js          # Transactional checkout and Socket.IO events
+│   ├── wishlist.js        # User wishlists
+│   ├── coupons.js         # Promo codes
+│   ├── uploads.js         # Multer image uploads
+│   ├── analytics.js       # Admin Chart.js data endpoints
+│   ├── loyalty.js         # Rewards points logic
+│   ├── subscriptions.js   # Recurring orders
+│   └── reviews.js         # Product reviews
 ├── public/            # Frontend Assets
 │   ├── index.html     # Main Storefront
 │   ├── admin.html     # Admin Dashboard

@@ -20,8 +20,22 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("nav-employees").style.display = "flex";
   }
 
+  initSocket();
   loadDashboard();
 });
+
+let adminSocket = null;
+function initSocket() {
+  if (typeof io !== 'undefined') {
+    adminSocket = io();
+    adminSocket.emit('join_admin');
+    adminSocket.on('new_order', (data) => {
+      showToast('🚨', `New order ${data.orderNumber} placed for ₹${data.total}!`);
+      if (document.getElementById('tab-dashboard').classList.contains('active')) loadDashboard();
+      if (document.getElementById('tab-orders').classList.contains('active')) loadOrders();
+    });
+  }
+}
 
 // -------- Core --------
 async function api(path, options = {}) {
@@ -74,31 +88,73 @@ function showToast(icon, msg) {
 }
 
 // -------- Dashboard --------
+let revChartInstance = null;
+let catChartInstance = null;
+
 async function loadDashboard() {
   try {
-    const productsRes = await api("/api/products");
+    const overviewRes = await api("/api/analytics/overview");
+    const revRes = await api("/api/analytics/revenue-chart");
+    const catRes = await api("/api/analytics/category-breakdown");
     const ordersRes = await api("/api/orders/admin/all");
 
-    if (productsRes.success) {
-      document.getElementById("stat-products").textContent = productsRes.data.length;
+    if (overviewRes.success) {
+      const { data } = overviewRes;
+      document.getElementById("stat-products").textContent = data.products.total;
+      document.getElementById("stat-orders").textContent = data.orders.total;
+      document.getElementById("stat-customers").textContent = data.users.total;
+      document.getElementById("stat-revenue").textContent = formatPrice(data.revenue.total);
     }
 
     if (ordersRes.success) {
-      const orders = ordersRes.data;
-      document.getElementById("stat-orders").textContent = orders.length;
-      
-      const revenue = orders.filter(o => o.status === "delivered").reduce((sum, o) => sum + parseFloat(o.total), 0);
-      document.getElementById("stat-revenue").textContent = formatPrice(revenue);
-      
-      // Distinct customers count estimation from orders
-      const users = new Set(orders.map(o => o.user_id));
-      document.getElementById("stat-customers").textContent = users.size;
+      renderRecentOrders(ordersRes.data.slice(0, 5));
+    }
 
-      renderRecentOrders(orders.slice(0, 5));
+    if (revRes.success && catRes.success && typeof Chart !== 'undefined') {
+      renderCharts(revRes.data, catRes.data);
     }
   } catch (e) {
     console.error(e);
   }
+}
+
+function renderCharts(revData, catData) {
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+
+  const revCtx = document.getElementById('revenueChart').getContext('2d');
+  if (revChartInstance) revChartInstance.destroy();
+  revChartInstance = new Chart(revCtx, {
+    type: 'line',
+    data: {
+      labels: revData.map(d => new Date(d.date).toLocaleDateString(undefined, {month:'short', day:'numeric'})),
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: revData.map(d => d.revenue),
+        borderColor: '#00ff88',
+        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  const catCtx = document.getElementById('categoryChart').getContext('2d');
+  if (catChartInstance) catChartInstance.destroy();
+  catChartInstance = new Chart(catCtx, {
+    type: 'doughnut',
+    data: {
+      labels: catData.map(d => d.category),
+      datasets: [{
+        data: catData.map(d => d.revenue),
+        backgroundColor: ['#00ff88', '#bf00ff', '#ffd700', '#ff4757', '#3b82f6', '#a855f7'],
+        borderWidth: 0
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
 }
 
 function renderRecentOrders(orders) {

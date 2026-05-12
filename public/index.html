@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Premium AI-powered grocery delivery. Fresh vegetables, fruits, dairy and more delivered in 10 minutes." />
+    <meta name="theme-color" content="#00ff88" />
     <title>Vegetable Market AI | Premium Grocery Delivery</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,6 +29,12 @@
     
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Socket.IO for Real-time -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   </head>
   <body>
     <!-- Loading Screen -->
@@ -72,6 +85,14 @@
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
             Wishlist
           </button>
+          <button class="nav-item" id="nav-loyalty-btn" onclick="app.switchTab('loyalty')" style="display: none;">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Rewards
+          </button>
+          <button class="nav-item" id="nav-subs-btn" onclick="app.switchTab('subscriptions')" style="display: none;">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            Subscribe
+          </button>
         </nav>
         
         <div class="sidebar-promo">
@@ -90,6 +111,12 @@
             <div class="delivery-promise">
               <span class="bolt">⚡</span> Delivery in <span class="highlight">10-20 min</span>
             </div>
+            
+            <!-- Dark/Light Mode Toggle -->
+            <button class="theme-toggle-btn" id="theme-toggle" onclick="app.toggleTheme()" title="Toggle theme">
+              <svg class="theme-icon-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+              <svg class="theme-icon-light" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
             
             <div class="search-container">
               <div class="search-wrapper">
@@ -247,6 +274,18 @@
           <div id="page-orders" class="page">
             <h2 class="page-title">Order History</h2>
             <div id="orders-container"></div>
+          </div>
+
+          <!-- LOYALTY PAGE -->
+          <div id="page-loyalty" class="page">
+            <h2 class="page-title">🏆 Rewards & Loyalty</h2>
+            <div id="loyalty-container"></div>
+          </div>
+
+          <!-- SUBSCRIPTIONS PAGE -->
+          <div id="page-subscriptions" class="page">
+            <h2 class="page-title">🔄 My Subscriptions</h2>
+            <div id="subscriptions-container"></div>
           </div>
           
           <!-- CHECKOUT PAGE -->
@@ -423,8 +462,72 @@
     <!-- Custom Cursor Glow -->
     <div id="cursor-glow"></div>
 
+    <!-- AI Chatbot Widget -->
+    <div class="chatbot-fab" id="chatbot-fab" onclick="app.toggleChatbot()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:28px;height:28px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    </div>
+    <div class="chatbot-panel" id="chatbot-panel" style="display:none">
+      <div class="chatbot-header">
+        <span>🤖 FreshBot AI</span>
+        <button onclick="app.toggleChatbot()">&times;</button>
+      </div>
+      <div class="chatbot-messages" id="chatbot-messages">
+        <div class="chat-msg bot">Hi! 👋 I'm FreshBot. Ask me about products, deals, or track your order!</div>
+      </div>
+      <div class="chatbot-input">
+        <input type="text" id="chatbot-input" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')app.sendChatMessage()" />
+        <button onclick="app.sendChatMessage()">➤</button>
+      </div>
+    </div>
+
     <script src="/js/three-scene.js"></script>
     <script src="/js/ux-effects.js"></script>
     <script src="/js/app.js"></script>
+
+    <!-- Payment Gateway Modal -->
+    <div class="modal-overlay" id="payment-modal">
+      <div class="payment-modal">
+        <div class="payment-header">
+          <div class="payment-logo">⚡ FreshPay <span>Secure</span></div>
+          <button type="button" class="close-payment" onclick="app.closePaymentModal()">&times;</button>
+        </div>
+        <div class="payment-amount">
+          <div style="font-size:14px; color:var(--text-dim); margin-bottom:4px">Amount to Pay</div>
+          <div class="amount-value" id="payment-amount-display">₹0</div>
+        </div>
+        <div class="payment-body">
+          <div class="form-group">
+            <label>Card Number</label>
+            <div class="card-input-wrapper">
+              <span class="card-icon">💳</span>
+              <input type="text" id="pay-card-num" placeholder="4242 4242 4242 4242" maxlength="19" />
+            </div>
+          </div>
+          <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+              <label>Expiry (MM/YY)</label>
+              <input type="text" id="pay-expiry" placeholder="12/26" maxlength="5" />
+            </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="password" id="pay-cvv" placeholder="123" maxlength="3" />
+            </div>
+          </div>
+          <button class="btn-primary w-full" id="btn-process-payment" onclick="app.processPayment()" style="margin-top:20px; height:50px; font-size:16px;">
+            Pay Now
+          </button>
+        </div>
+        <div class="payment-footer">
+          🔒 Secured by 256-bit AES Encryption
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Register Service Worker for PWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      }
+    </script>
   </body>
 </html>

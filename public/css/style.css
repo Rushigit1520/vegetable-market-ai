@@ -435,3 +435,223 @@ ul, ol { list-style: none; }
 .modal-image-col img { width: 80%; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); }
 .modal-info-col { padding: 40px; display: flex; flex-direction: column; }
 @media (max-width: 768px) { .modal-content { grid-template-columns: 1fr; } .modal-image-col { padding: 20px; height: 250px; } .modal-info-col { padding: 24px; } }
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle-btn {
+  width: 44px; height: 44px; border-radius: 12px; background: var(--bg-glass); border: 1px solid var(--border-glass);
+  display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: all 0.3s;
+}
+.theme-toggle-btn:hover { background: var(--bg-hover); color: #fff; }
+.theme-toggle-btn svg { width: 22px; height: 22px; }
+
+/* Light Theme */
+body.light-theme { --bg-deep: #f0f2f5; --bg-surface: rgba(255,255,255,0.8); --bg-glass: rgba(0,0,0,0.04);
+  --bg-glass-heavy: rgba(0,0,0,0.08); --bg-hover: rgba(0,0,0,0.1); --text-main: #1a1a2e; --text-muted: #475569;
+  --text-dim: #64748b; --border-glass: rgba(0,0,0,0.1); --border-glass-bright: rgba(0,0,0,0.2);
+  --shadow-premium: 0 8px 30px -10px rgba(0,0,0,0.15); --grad-card: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
+}
+body.light-theme #bg-layer { background: radial-gradient(circle at 50% 0%, #e8f4f8 0%, #f0f2f5 70%); }
+body.light-theme #bg-canvas { opacity: 0.3; }
+body.light-theme .header { background: rgba(240,242,245,0.8); }
+body.light-theme .cart-drawer { background: #fff; }
+body.light-theme .cart-drawer::before { background: rgba(255,255,255,0.95); }
+body.light-theme .product-card-body, body.light-theme .product-name, body.light-theme .price-current { color: #1a1a2e; }
+body.light-theme .qty-control-inline, body.light-theme .qty-small { border: 1px solid rgba(0,0,0,0.15); }
+body.light-theme .form-group input, body.light-theme .form-group textarea { background: #fff; color: #1a1a2e; }
+body.light-theme .checkout-summary { background: rgba(255,255,255,0.9); }
+body.light-theme .search-wrapper input { background: rgba(0,0,0,0.04); color: #1a1a2e; }
+
+/* ===== CHATBOT WIDGET ===== */
+.chatbot-fab {
+  position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%;
+  background: var(--grad-green); color: var(--bg-deep); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; z-index: 1500; box-shadow: var(--glow-green), var(--shadow-premium);
+  transition: all 0.3s var(--spring); border: none;
+}
+.chatbot-fab:hover { transform: scale(1.1) rotate(10deg); }
+
+.chatbot-panel {
+  position: fixed; bottom: 96px; right: 24px; width: 380px; max-height: 500px;
+  background: var(--bg-deep); border: 1px solid var(--border-glass); border-radius: 24px;
+  z-index: 1500; box-shadow: var(--shadow-premium); display: flex; flex-direction: column;
+  overflow: hidden; animation: chatSlideUp 0.3s var(--spring);
+}
+@keyframes chatSlideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } }
+
+.chatbot-header {
+  display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;
+  background: var(--bg-glass); border-bottom: 1px solid var(--border-glass); font-weight: 700;
+}
+.chatbot-header button { color: var(--text-muted); font-size: 24px; background: none; border: none; cursor: pointer; }
+
+.chatbot-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 340px; }
+.chat-msg {
+  padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; max-width: 85%;
+  animation: chatMsgIn 0.3s var(--spring);
+}
+@keyframes chatMsgIn { from { opacity: 0; transform: translateY(10px); } }
+.chat-msg.bot { background: var(--bg-glass-heavy); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 4px; }
+.chat-msg.user { background: var(--grad-green); color: var(--bg-deep); align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 600; }
+
+.chatbot-input {
+  display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border-glass); background: var(--bg-glass);
+}
+.chatbot-input input {
+  flex: 1; background: var(--bg-glass); border: 1px solid var(--border-glass); padding: 10px 14px;
+  border-radius: 12px; color: var(--text-main); font-size: 14px;
+}
+.chatbot-input button {
+  width: 40px; height: 40px; border-radius: 12px; background: var(--grad-green); color: var(--bg-deep);
+  font-size: 18px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer;
+}
+
+/* ===== ORDER TRACKING TIMELINE ===== */
+.order-card { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 20px; padding: 24px; margin-bottom: 16px; }
+.order-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+.order-number { font-weight: 800; font-size: 16px; font-family: monospace; }
+.order-date { font-size: 13px; color: var(--text-dim); margin-left: 12px; }
+.order-status { padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.order-status-pending { background: rgba(255,215,0,0.1); color: var(--accent-gold); border: 1px solid rgba(255,215,0,0.3); }
+.order-status-confirmed { background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+.order-status-preparing { background: rgba(168,85,247,0.1); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); }
+.order-status-out_for_delivery { background: rgba(249,115,22,0.1); color: #f97316; border: 1px solid rgba(249,115,22,0.3); }
+.order-status-delivered { background: rgba(0,255,136,0.1); color: var(--accent-green); border: 1px solid rgba(0,255,136,0.3); }
+.order-status-cancelled { background: rgba(255,71,87,0.1); color: var(--accent-red); border: 1px solid rgba(255,71,87,0.3); }
+
+.order-timeline { display: flex; justify-content: space-between; margin: 20px 0; position: relative; padding: 0 8px; }
+.order-timeline::before { content: ''; position: absolute; top: 16px; left: 24px; right: 24px; height: 3px; background: var(--border-glass); }
+.timeline-step { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; z-index: 1; flex: 1; }
+.timeline-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-glass-heavy); border: 2px solid var(--border-glass); display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.3s; }
+.timeline-step.active .timeline-dot { background: var(--accent-green); border-color: var(--accent-green); color: var(--bg-deep); font-weight: 800; }
+.timeline-step.completed .timeline-dot { background: var(--accent-green); border-color: var(--accent-green); color: var(--bg-deep); }
+.timeline-label { font-size: 11px; color: var(--text-dim); font-weight: 600; text-align: center; }
+.timeline-step.active .timeline-label, .timeline-step.completed .timeline-label { color: var(--accent-green); }
+
+.order-card-items { border-top: 1px solid var(--border-glass); padding-top: 12px; }
+.order-item-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: var(--text-muted); }
+.order-card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-glass); padding-top: 16px; margin-top: 12px; }
+.order-card-footer strong { font-size: 18px; }
+.btn-reorder { padding: 8px 20px; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 12px; color: var(--accent-green); font-weight: 700; font-size: 13px; transition: all 0.2s; }
+.btn-reorder:hover { background: rgba(0,255,136,0.1); border-color: var(--accent-green); }
+
+.orders-empty { text-align: center; padding: 80px 20px; }
+.orders-empty .empty-icon { font-size: 72px; margin-bottom: 16px; opacity: 0.6; }
+.orders-empty h3 { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+.orders-empty p { color: var(--text-muted); margin-bottom: 24px; }
+
+/* ===== LOYALTY / REWARDS ===== */
+.loyalty-hero { background: var(--grad-card); border: 1px solid var(--border-glass); border-radius: 24px; padding: 32px; margin-bottom: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.loyalty-points-card { text-align: center; }
+.loyalty-points-number { font-size: 56px; font-weight: 800; color: var(--accent-gold); line-height: 1; }
+.loyalty-tier { display: inline-block; padding: 6px 16px; border-radius: 99px; font-size: 14px; font-weight: 800; margin-top: 12px; text-transform: uppercase; letter-spacing: 1px; }
+.tier-bronze { background: rgba(205,127,50,0.15); color: #cd7f32; border: 1px solid rgba(205,127,50,0.3); }
+.tier-silver { background: rgba(192,192,192,0.15); color: #c0c0c0; border: 1px solid rgba(192,192,192,0.3); }
+.tier-gold { background: rgba(255,215,0,0.15); color: var(--accent-gold); border: 1px solid rgba(255,215,0,0.3); }
+.tier-platinum { background: rgba(229,228,226,0.15); color: #e5e4e2; border: 1px solid rgba(229,228,226,0.3); }
+
+.loyalty-progress { margin-top: 16px; }
+.progress-bar { height: 8px; background: var(--bg-glass-heavy); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+.progress-fill { height: 100%; background: var(--grad-green); border-radius: 99px; transition: width 1s var(--smooth); }
+
+.loyalty-actions { display: flex; flex-direction: column; gap: 12px; justify-content: center; }
+.loyalty-stat { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-glass); }
+.loyalty-stat-label { color: var(--text-muted); font-size: 14px; }
+.loyalty-stat-value { font-weight: 800; font-size: 16px; }
+
+.loyalty-transactions { margin-top: 24px; }
+.tx-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 14px; margin-bottom: 8px; }
+.tx-points-earned { color: var(--accent-green); font-weight: 800; }
+.tx-points-redeemed { color: var(--accent-red); font-weight: 800; }
+
+/* ===== SUBSCRIPTIONS ===== */
+.sub-card { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 20px; padding: 24px; margin-bottom: 16px; display: flex; gap: 20px; align-items: center; }
+.sub-card-img { width: 72px; height: 72px; border-radius: 14px; background: var(--bg-glass-heavy); display: flex; align-items: center; justify-content: center; }
+.sub-card-img img { width: 80%; height: 80%; object-fit: contain; }
+.sub-card-info { flex: 1; }
+.sub-card-name { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.sub-freq { display: inline-block; padding: 4px 10px; border-radius: 8px; background: rgba(0,255,136,0.1); color: var(--accent-green); font-size: 12px; font-weight: 700; text-transform: capitalize; }
+.sub-next { font-size: 13px; color: var(--text-dim); margin-top: 6px; }
+.sub-actions { display: flex; gap: 8px; }
+.sub-actions button { padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; border: 1px solid var(--border-glass); background: var(--bg-glass); color: var(--text-muted); transition: all 0.2s; }
+.sub-actions button:hover { background: var(--bg-hover); color: #fff; }
+.sub-paused { opacity: 0.5; }
+
+/* ===== REVIEWS SECTION ===== */
+.reviews-section { margin-top: 32px; border-top: 1px solid var(--border-glass); padding-top: 24px; }
+.review-card { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 16px; padding: 20px; margin-bottom: 12px; }
+.review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.review-user { font-weight: 700; font-size: 15px; }
+.review-date { font-size: 12px; color: var(--text-dim); }
+.review-stars { color: var(--accent-gold); font-size: 16px; letter-spacing: 2px; margin-bottom: 8px; }
+.review-comment { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+
+.review-form { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 16px; padding: 24px; margin-top: 16px; }
+.star-input { display: flex; gap: 8px; margin-bottom: 12px; }
+.star-input button { font-size: 28px; color: var(--text-dim); background: none; border: none; cursor: pointer; transition: color 0.2s; }
+.star-input button.active, .star-input button:hover { color: var(--accent-gold); }
+
+/* ===== CHECKOUT SUMMARY ===== */
+.checkout-summary { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 20px; padding: 32px; position: sticky; top: 100px; }
+.summary-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+.summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: var(--text-muted); }
+.summary-row.total { border-top: 1px dashed var(--border-glass); margin-top: 16px; padding-top: 16px; font-size: 20px; font-weight: 800; color: #fff; }
+.checkout-items-mini { max-height: 200px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px solid var(--border-glass); padding-bottom: 16px; }
+.delivery-time-estimate { display: flex; align-items: center; gap: 8px; margin-top: 20px; padding: 16px; background: rgba(0,255,136,0.05); border-radius: 12px; border: 1px solid rgba(0,255,136,0.1); font-size: 14px; color: var(--text-muted); }
+.delivery-time-estimate svg { width: 20px; height: 20px; color: var(--accent-green); flex-shrink: 0; }
+
+.confirmation-card { text-align: center; padding: 60px 40px; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 24px; }
+.confirm-icon { font-size: 72px; margin-bottom: 16px; }
+.confirm-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+.confirm-subtitle { color: var(--text-muted); font-size: 16px; margin-bottom: 24px; }
+.confirm-order-id { font-size: 18px; color: var(--text-muted); }
+
+/* Cursor glow */
+#cursor-glow { position: fixed; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%); pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: opacity 0.3s; }
+
+/* Btn spinner */
+.btn-spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Footer */
+.footer { padding: 24px 40px; text-align: center; color: var(--text-dim); font-size: 13px; border-top: 1px solid var(--border-glass); margin-top: 60px; }
+
+/* Back link */
+.back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-weight: 600; font-size: 14px; margin-bottom: 16px; transition: color 0.2s; }
+.back-link:hover { color: #fff; }
+.back-link svg { width: 18px; height: 18px; }
+
+/* Page title */
+.page-title { font-size: 32px; font-weight: 800; margin-bottom: 32px; }
+
+/* Search dropdown */
+.search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: rgba(15,23,34,0.95); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); border-radius: 16px; margin-top: 8px; box-shadow: var(--shadow-premium); z-index: 200; display: none; overflow: hidden; }
+.search-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; transition: background 0.2s; }
+.search-item:hover { background: var(--bg-glass); }
+
+/* Loyalty redeem btn */
+.btn-redeem { padding: 12px 28px; background: var(--grad-green); color: var(--bg-deep); font-weight: 800; border-radius: 12px; transition: all 0.3s; border: none; cursor: pointer; }
+.btn-redeem:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+/* --- Payment Modal (FreshPay) --- */
+.payment-modal { width: 100%; max-width: 440px; background: var(--bg-card); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--border-glass); border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: translateY(20px); opacity: 0; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.modal-overlay.active .payment-modal { transform: translateY(0); opacity: 1; }
+.payment-header { padding: 24px 24px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.payment-logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+.payment-logo span { font-weight: 500; color: var(--text-muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+.close-payment { background: none; border: none; font-size: 28px; color: var(--text-muted); cursor: pointer; line-height: 1; }
+.payment-amount { padding: 24px; text-align: center; background: rgba(0, 255, 136, 0.05); }
+.amount-value { font-size: 36px; font-weight: 800; color: var(--accent-green); font-variant-numeric: tabular-nums; }
+.payment-body { padding: 24px; }
+.card-input-wrapper { position: relative; }
+.card-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 20px; pointer-events: none; }
+.card-input-wrapper input { padding-left: 48px; letter-spacing: 2px; font-family: monospace; font-size: 16px; }
+.payment-footer { padding: 16px; text-align: center; font-size: 12px; color: var(--text-dim); border-top: 1px solid var(--border); background: rgba(255, 255, 255, 0.02); }
+.processing-spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(0, 0, 0, 0.2); border-top-color: #000; border-radius: 50%; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .chatbot-panel { width: calc(100vw - 32px); right: 16px; bottom: 88px; }
+  .loyalty-hero { grid-template-columns: 1fr; }
+  .sub-card { flex-direction: column; text-align: center; }
+  .sub-actions { justify-content: center; }
+}

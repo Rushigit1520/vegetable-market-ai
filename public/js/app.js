@@ -23,10 +23,12 @@ const app = {
 
   // -------- Initialization --------
   init() {
+    this.restoreTheme();
     this.updateAuthUI();
     this.setupEventListeners();
     this.loadInitialData();
     this.startFlashCountdown();
+    this.connectSocket();
 
     if (this.state.authToken) {
       this.fetchCart();
@@ -89,11 +91,19 @@ const app = {
       }
       document.getElementById("nav-orders-btn").style.display = "flex";
       document.getElementById("nav-wishlist-btn").style.display = "flex";
+      const loyaltyBtn = document.getElementById("nav-loyalty-btn");
+      const subsBtn = document.getElementById("nav-subs-btn");
+      if (loyaltyBtn) loyaltyBtn.style.display = "flex";
+      if (subsBtn) subsBtn.style.display = "flex";
     } else {
       if (loginBtn) loginBtn.style.display = "inline-flex";
       if (userMenu) userMenu.style.display = "none";
       document.getElementById("nav-orders-btn").style.display = "none";
       document.getElementById("nav-wishlist-btn").style.display = "none";
+      const loyaltyBtn = document.getElementById("nav-loyalty-btn");
+      const subsBtn = document.getElementById("nav-subs-btn");
+      if (loyaltyBtn) loyaltyBtn.style.display = "none";
+      if (subsBtn) subsBtn.style.display = "none";
     }
   },
 
@@ -137,6 +147,8 @@ const app = {
     if (page === "categories") this.renderAllCategoriesPage();
     if (page === "deals") this.renderDealsPage();
     if (page === "checkout") this.renderCheckoutPage();
+    if (page === "loyalty") this.fetchLoyalty();
+    if (page === "subscriptions") this.fetchSubscriptions();
 
     // Close user dropdown if open
     document.getElementById("user-dropdown").classList.remove("open");
@@ -648,9 +660,54 @@ const app = {
 
   async placeOrder(e) {
     e.preventDefault();
+    
+    // Check payment method
+    const selectedPayment = document.querySelector('input[name="payment"]:checked').value;
+    
+    if (selectedPayment === "card") {
+      // Open FreshPay simulated gateway
+      const total = this.state.cart.total - this.state.discountAmount;
+      document.getElementById("payment-amount-display").textContent = this.formatPrice(Math.max(0, total));
+      document.getElementById("payment-modal").classList.add("active");
+      return;
+    }
+
+    // Otherwise process immediately (COD, UPI mock)
+    this.executeOrder();
+  },
+
+  closePaymentModal() {
+    document.getElementById("payment-modal").classList.remove("active");
+  },
+
+  async processPayment() {
+    const btn = document.getElementById("btn-process-payment");
+    const num = document.getElementById("pay-card-num").value;
+    const exp = document.getElementById("pay-expiry").value;
+    const cvv = document.getElementById("pay-cvv").value;
+    
+    if (!num || !exp || !cvv) {
+      this.showToast("⚠️", "Please fill in all card details");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="processing-spinner"></span> Securely processing...`;
+
+    // Simulate 2s payment processing delay
+    setTimeout(() => {
+      this.closePaymentModal();
+      btn.disabled = false;
+      btn.innerHTML = "Pay Now";
+      this.showToast("💸", "Payment successful!");
+      this.executeOrder();
+    }, 2000);
+  },
+
+  async executeOrder() {
     const btn = document.getElementById("btn-place-order");
     btn.disabled = true;
-    btn.innerHTML = `<span class="btn-spinner"></span> Processing...`;
+    btn.innerHTML = `<span class="btn-spinner"></span> Placing Order...`;
 
     const payload = {
       address: document.getElementById("chk-address").value,
@@ -722,41 +779,20 @@ const app = {
   renderOrdersPage() {
     const container = document.getElementById("orders-container");
     if (!container) return;
-
     if (this.state.orders.length === 0) {
-      container.innerHTML = `
-        <div class="orders-empty">
-          <div class="empty-icon">📦</div>
-          <h3>No Orders Yet</h3>
-          <p>You haven't placed any orders yet. Start shopping!</p>
-          <button class="btn-primary" onclick="app.switchTab('home')">Browse Products</button>
-        </div>
-      `;
+      container.innerHTML = `<div class="orders-empty"><div class="empty-icon">📦</div><h3>No Orders Yet</h3><p>You haven't placed any orders yet. Start shopping!</p><button class="btn-primary" onclick="app.switchTab('home')">Browse Products</button></div>`;
       return;
     }
-
-    container.innerHTML = `<div class="orders-list">` + this.state.orders.map(o => `
-      <div class="order-card">
-        <div class="order-card-header">
-          <div>
-            <span class="order-number">${o.order_number}</span>
-            <span class="order-date">${new Date(o.created_at).toLocaleDateString()}</span>
-          </div>
-          <span class="order-status order-status-${o.status}">${o.status.replace('_', ' ')}</span>
-        </div>
-        <div class="order-card-items">
-          ${o.items.map(i => `
-            <div class="order-item-row">
-              <span>${i.quantity}x ${i.product_name}</span>
-              <span>${this.formatPrice(i.subtotal)}</span>
-            </div>
-          `).join("")}
-        </div>
-        <div class="order-card-footer">
-          <strong>Total: ${this.formatPrice(o.total)}</strong>
-        </div>
-      </div>
-    `).join("") + `</div>`;
+    const statuses = ['pending','confirmed','preparing','out_for_delivery','delivered'];
+    container.innerHTML = `<div class="orders-list">` + this.state.orders.map(o => {
+      const idx = statuses.indexOf(o.status);
+      const timeline = statuses.map((s,i) => {
+        const cls = o.status==='cancelled' ? '' : i < idx ? 'completed' : i === idx ? 'active' : '';
+        const icons = ['📋','✅','👨‍🍳','🚚','🎉'];
+        return `<div class="timeline-step ${cls}"><div class="timeline-dot">${icons[i]}</div><div class="timeline-label">${s.replace('_',' ')}</div></div>`;
+      }).join('');
+      return `<div class="order-card" id="order-${o.id}"><div class="order-card-header"><div><span class="order-number">${o.order_number}</span><span class="order-date">${new Date(o.created_at).toLocaleDateString()}</span></div><span class="order-status order-status-${o.status}">${o.status.replace('_',' ')}</span></div>${o.status!=='cancelled'?`<div class="order-timeline">${timeline}</div>`:''}<div class="order-card-items">${o.items.map(i=>`<div class="order-item-row"><span>${i.quantity}x ${i.product_name}</span><span>${this.formatPrice(i.subtotal)}</span></div>`).join('')}</div><div class="order-card-footer"><strong>Total: ${this.formatPrice(o.total)}</strong><button class="btn-reorder" onclick="app.reorder(${o.id})">🔄 Re-order</button></div></div>`;
+    }).join('') + `</div>`;
   },
 
   // -------- Wishlist --------
@@ -911,6 +947,173 @@ const app = {
       const s = Math.floor(time % 60).toString().padStart(2, "0");
       el.textContent = `${h}h : ${m}m : ${s}s`;
     }, 1000);
+  },
+
+  // -------- Socket.IO Real-time --------
+  connectSocket() {
+    if (typeof io === 'undefined') return;
+    try {
+      this.socket = io();
+      if (this.state.currentUser) {
+        this.socket.emit('join', this.state.currentUser.id);
+      }
+      this.socket.on('order_status_update', (data) => {
+        this.showToast('📦', `Order ${data.orderNumber}: ${data.status.replace('_',' ')}`);
+        if (this.state.currentPage === 'orders') this.fetchOrders();
+      });
+    } catch(e) { console.warn('Socket.IO not available'); }
+  },
+
+  // -------- Theme Toggle --------
+  toggleTheme() {
+    const isLight = document.body.classList.toggle('light-theme');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    const darkIcon = document.querySelector('.theme-icon-dark');
+    const lightIcon = document.querySelector('.theme-icon-light');
+    if (darkIcon) darkIcon.style.display = isLight ? 'none' : 'block';
+    if (lightIcon) lightIcon.style.display = isLight ? 'block' : 'none';
+  },
+
+  restoreTheme() {
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light-theme');
+      const d = document.querySelector('.theme-icon-dark');
+      const l = document.querySelector('.theme-icon-light');
+      if (d) d.style.display = 'none';
+      if (l) l.style.display = 'block';
+    }
+  },
+
+  // -------- Chatbot --------
+  toggleChatbot() {
+    const panel = document.getElementById('chatbot-panel');
+    panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+  },
+
+  async sendChatMessage() {
+    const input = document.getElementById('chatbot-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    const container = document.getElementById('chatbot-messages');
+    container.innerHTML += `<div class="chat-msg user">${msg}</div>`;
+    input.value = '';
+    container.scrollTop = container.scrollHeight;
+    const reply = await this.getBotReply(msg);
+    container.innerHTML += `<div class="chat-msg bot">${reply}</div>`;
+    container.scrollTop = container.scrollHeight;
+  },
+
+  async getBotReply(msg) {
+    const lower = msg.toLowerCase();
+    if (lower.includes('track') || lower.includes('order')) {
+      if (!this.state.authToken) return 'Please log in to track your orders!';
+      const res = await this.api('/api/orders');
+      if (res.success && res.data.length > 0) {
+        const o = res.data[0];
+        return `Your latest order <strong>${o.order_number}</strong> is <strong>${o.status.replace('_',' ')}</strong>. Total: ${this.formatPrice(o.total)}`;
+      }
+      return 'You have no orders yet. Start shopping! 🛒';
+    }
+    if (lower.includes('deal') || lower.includes('sale') || lower.includes('discount')) {
+      return 'We have amazing flash deals! Check the ⚡ Flash Deals section. Use code <strong>FRESH10</strong> for 10% off!';
+    }
+    if (lower.includes('deliver')) {
+      return 'We deliver in <strong>10-20 minutes</strong> from our nearest dark store! 🚚';
+    }
+    if (lower.includes('organic') || lower.includes('tomato') || lower.includes('fruit') || lower.includes('vegeta')) {
+      try {
+        const res = await this.api(`/api/products?search=${encodeURIComponent(msg)}`);
+        if (res.success && res.data.length > 0) {
+          const items = res.data.slice(0,3).map(p => `• ${p.name} — ${this.formatPrice(p.price)}`).join('<br>');
+          return `Found these for you:<br>${items}<br><br>Click on any product to add to cart!`;
+        }
+      } catch(e) {}
+      return 'I couldn\'t find that specific item. Try browsing our categories!';
+    }
+    if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
+      return 'Hello! 👋 How can I help you today? I can help with products, deals, or order tracking!';
+    }
+    if (lower.includes('coupon') || lower.includes('code') || lower.includes('promo')) {
+      return 'Try these codes:<br>• <strong>FRESH10</strong> — 10% off<br>• <strong>WELCOME20</strong> — ₹20 off<br>• <strong>MEGA25</strong> — 25% off (up to ₹150)';
+    }
+    return 'I can help with: 🔍 Product search, 📦 Order tracking, 🏷️ Deals & coupons, 🚚 Delivery info. Just ask!';
+  },
+
+  // -------- Re-order --------
+  async reorder(orderId) {
+    const res = await this.api(`/api/orders/${orderId}/reorder`, { method: 'POST' });
+    if (res.success) {
+      this.showToast('🛒', res.message);
+      await this.fetchCart();
+      this.toggleCart();
+    } else {
+      this.showToast('❌', res.message);
+    }
+  },
+
+  // -------- Loyalty --------
+  async fetchLoyalty() {
+    const container = document.getElementById('loyalty-container');
+    if (!container) return;
+    const res = await this.api('/api/loyalty');
+    if (!res.success) { container.innerHTML = '<p>Could not load rewards.</p>'; return; }
+    const d = res.data;
+    const tierClass = `tier-${d.tier.toLowerCase()}`;
+    const progress = d.nextTier ? Math.min(100, ((d.points % 500) / (d.nextTier - (d.nextTier - 500))) * 100) : 100;
+    container.innerHTML = `
+      <div class="loyalty-hero">
+        <div class="loyalty-points-card">
+          <div class="loyalty-points-number">${d.points}</div>
+          <div style="color:var(--text-muted);font-size:14px;margin-top:4px">Loyalty Points</div>
+          <div class="loyalty-tier ${tierClass}">${d.tier}</div>
+          ${d.nextTier ? `<div class="loyalty-progress"><div style="font-size:12px;color:var(--text-dim)">${d.pointsToNextTier} points to ${d.nextTier >= 2000 ? 'Platinum' : d.nextTier >= 1000 ? 'Gold' : 'Silver'}</div><div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div></div>` : ''}
+        </div>
+        <div class="loyalty-actions">
+          <div class="loyalty-stat"><span class="loyalty-stat-label">Redeemable Value</span><span class="loyalty-stat-value">₹${d.redeemableValue}</span></div>
+          <div class="loyalty-stat"><span class="loyalty-stat-label">Points Rate</span><span class="loyalty-stat-value">1 pt / ₹10 spent</span></div>
+          <div class="loyalty-stat"><span class="loyalty-stat-label">Redemption Rate</span><span class="loyalty-stat-value">10 pts = ₹1</span></div>
+        </div>
+      </div>
+      <h3 style="font-size:20px;font-weight:800;margin-bottom:16px">Transaction History</h3>
+      ${d.transactions.length === 0 ? '<p style="color:var(--text-muted)">No transactions yet. Earn points by placing orders!</p>' :
+        d.transactions.map(t => `<div class="tx-item"><div><div style="font-weight:700">${t.description}</div><div style="font-size:12px;color:var(--text-dim)">${new Date(t.created_at).toLocaleDateString()}</div></div><span class="${t.type==='earned'?'tx-points-earned':'tx-points-redeemed'}">${t.type==='earned'?'+':''} ${t.points} pts</span></div>`).join('')}`;
+  },
+
+  // -------- Subscriptions --------
+  async fetchSubscriptions() {
+    const container = document.getElementById('subscriptions-container');
+    if (!container) return;
+    const res = await this.api('/api/subscriptions');
+    if (!res.success) { container.innerHTML = '<p>Could not load subscriptions.</p>'; return; }
+    if (res.data.length === 0) {
+      container.innerHTML = `<div class="orders-empty"><div class="empty-icon">🔄</div><h3>No Subscriptions</h3><p>Subscribe to daily essentials like milk, bread, or eggs for automatic delivery!</p><button class="btn-primary" onclick="app.switchTab('home')">Browse Products</button></div>`;
+      return;
+    }
+    container.innerHTML = res.data.map(s => `
+      <div class="sub-card ${s.is_active?'':'sub-paused'}">
+        <div class="sub-card-img">${s.image&&s.image.startsWith('/')?`<img src="${s.image}">`:`<div style="font-size:32px">${s.image||'📦'}</div>`}</div>
+        <div class="sub-card-info">
+          <div class="sub-card-name">${s.name} × ${s.quantity}</div>
+          <span class="sub-freq">${s.frequency}</span>
+          <div class="sub-next">Next: ${new Date(s.next_delivery).toLocaleDateString()} • ${this.formatPrice(s.price * s.quantity)}</div>
+        </div>
+        <div class="sub-actions">
+          <button onclick="app.toggleSubscription(${s.id})">${s.is_active?'⏸ Pause':'▶ Resume'}</button>
+          <button onclick="app.cancelSubscription(${s.id})" style="color:var(--accent-red)">✕</button>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  async toggleSubscription(id) {
+    const res = await this.api(`/api/subscriptions/${id}/toggle`, { method: 'PUT' });
+    if (res.success) { this.showToast('🔄', res.message); this.fetchSubscriptions(); }
+  },
+
+  async cancelSubscription(id) {
+    if (!confirm('Cancel this subscription?')) return;
+    const res = await this.api(`/api/subscriptions/${id}`, { method: 'DELETE' });
+    if (res.success) { this.showToast('✅', res.message); this.fetchSubscriptions(); }
   }
 };
 
